@@ -5,27 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "build": "tsc --noEmit && vite build",
+    "build:prod": "tsc --noEmit && vite build --mode production",
+    "build:quick": "vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-table": "^8.21.2",
+    "firebase": "^10.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.4.1"
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
-    "@types/react": "^18.2.55",
-    "@types/react-dom": "^18.2.19",
-    "@vitejs/plugin-react-swc": "^3.8.0",
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^15.15.0",
-    "sass": "^1.86.1",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0"
+    "@babel/preset-react": "^7.26.3",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "eslint": "^8.53.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "sass": "^1.69.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
   }
 }

@@ -1,0 +1,69 @@
+/* League of Legends theme colors */
+$lol-gold: #d0a85c;
+$lol-blue: #0a1428;
+$lol-dark: #1e2328;
+$lol-light: #f0e6d2;
+$lol-error: #e74c3c;
+$lol-success: #2ecc71;
+$lol-warning: #f39c12;
+
+$dark-bg: #010a13;
+$card-bg: #1e2328;
+$text-color: #d0a85c;
+$border-color: #2e2e2e;
+$input-bg: #2e2e2e;
+$input-text: #d0a85c;
+$input-border: #2e2e2e;
+$input-focus: #d0a85c;
+$input-focus-border: #d0a85c;
+$input-focus-shadow: #d0a85c;
+$text-color-muted: #d0a85c;
+$error-color: #e74c3c;
+$success-color: #2ecc71;
+$warning-color: #f39c12;
+
+
+/* Discord theme colors */
+$discord-blue: #5865F2;
+$discord-dark: #2C2F33;
+$discord-light: #FFFFFF;
+
+/* Common values */
+$border-radius: 4px;
+$transition-speed: 0.2s;
+$box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+/* Opacity variations */
+$lol-gold-10: rgba($lol-gold, 0.1);
+$lol-gold-20: rgba($lol-gold, 0.2);
+$lol-gold-50: rgba($lol-gold, 0.5);
+$discord-blue-10: rgba($discord-blue, 0.1);
+$discord-blue-20: rgba($discord-blue, 0.2);
+
+/* Spacing */
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+
+/* Typography */
+$font-size-xs: 0.9rem;
+$font-size-sm: 1rem;
+$font-size-md: 1.1rem;
+$font-size-lg: 1.2rem;
+$font-size-xl: 1.5rem;
+$font-size-2xl: 2rem;
+$font-size-3xl: 2.5rem;
+
+/* Breakpoints */
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+/* Container widths */
+$container-sm: 640px;
+$container-md: 768px;
+$container-lg: 1024px;
+$container-xl: 1200px; 

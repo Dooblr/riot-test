@@ -1,20 +1,20 @@
-@import '../variables.scss';
+@use '../styles/styleVariables' as *;
 
 .navigation {
   position: relative;
   z-index: 10;
-  background-color: rgba(0, 9, 19, 0.9);
+  background-color: $lol-blue;
+  padding: $spacing-md 0;
   border-bottom: 2px solid $lol-gold;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .nav-container {
-  max-width: 1200px;
+  max-width: $container-xl;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 $spacing-md;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: 70px;
 }
 
@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   
-  img {
+  .logo {
     height: 40px;
     width: auto;
     margin-right: 10px;
@@ -31,43 +31,26 @@
 
 .nav-links {
   display: flex;
+  gap: $spacing-xl;
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   
   li {
-    margin: 0 10px;
-    
-    &:last-child {
-      margin-right: 0;
-    }
-  }
-  
-  a {
-    color: $lol-light;
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    position: relative;
-    
-    &:hover {
-      color: $lol-gold;
-    }
-    
-    &.active {
-      color: $lol-gold;
+    a {
+      color: $lol-light;
+      text-decoration: none;
+      font-size: $font-size-md;
+      font-weight: 500;
+      transition: color $transition-speed ease;
       
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: $lol-gold;
+      &:hover {
+        color: $lol-gold;
+      }
+      
+      &.active {
+        color: $lol-gold;
+        border-bottom: 2px solid $lol-gold;
       }
     }
   }

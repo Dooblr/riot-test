@@ -1,0 +1,258 @@
+@use '../styles/styleVariables.scss' as *;
+@use 'sass:color';
+
+.team-details {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .back-button {
+    background: none;
+    border: none;
+    color: $lol-gold;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    margin-bottom: 2rem;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $text-color;
+    }
+  }
+
+  .team-header {
+    background: $card-bg;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    h2 {
+      color: $text-color;
+      font-size: 2rem;
+      margin: 0 0 1rem 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .team-creator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      color: $text-color-muted;
+
+      .creator-name {
+        color: $lol-gold;
+        font-weight: bold;
+      }
+
+      .creator-badge {
+        font-size: 1.2rem;
+      }
+    }
+
+    .team-stats {
+      display: flex;
+      gap: 2rem;
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .label {
+          color: $text-color-muted;
+          font-size: 0.9rem;
+        }
+
+        .value {
+          color: $text-color;
+          font-size: 1.1rem;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .join-error {
+    background: rgba($lol-gold, 0.1);
+    color: $lol-gold;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid $lol-gold;
+    text-align: center;
+  }
+
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    .role-card {
+      background: $card-bg;
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      h3 {
+        color: $text-color;
+        font-size: 1.2rem;
+        margin: 0 0 1rem 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .player-info {
+        .player-name {
+          color: $lol-gold;
+          font-weight: bold;
+        }
+      }
+
+      .role-open {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        color: $text-color-muted;
+        font-style: italic;
+
+        .join-button {
+          background: $lol-gold;
+          color: $dark-bg;
+          border: none;
+          padding: 0.5rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: all 0.2s;
+
+          &:hover:not(:disabled) {
+            background: color.scale($lol-gold, $lightness: 10%);
+            transform: translateY(-2px);
+          }
+
+          &:disabled {
+            background: $text-color-muted;
+            cursor: not-allowed;
+            opacity: 0.7;
+          }
+        }
+      }
+    }
+  }
+
+  .delete-team-section {
+    background: $card-bg;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid rgba($error-color, 0.3);
+    box-shadow: 0 0 10px rgba($error-color, 0.1);
+
+    h3 {
+      color: $error-color;
+      font-size: 1.5rem;
+      margin: 0 0 1rem 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .warning {
+      color: $error-color;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+
+    .delete-confirmation {
+      p {
+        color: $text-color-muted;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+
+        strong {
+          color: $error-color;
+        }
+      }
+
+      .delete-input {
+        width: 100%;
+        max-width: 400px;
+        padding: 0.75rem;
+        background: $input-bg;
+        border: 1px solid rgba($error-color, 0.3);
+        border-radius: 4px;
+        color: $text-color;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+
+        &:focus {
+          outline: none;
+          border-color: $error-color;
+          box-shadow: 0 0 5px rgba($error-color, 0.2);
+        }
+
+        &::placeholder {
+          color: $text-color-muted;
+        }
+      }
+
+      .delete-error {
+        color: $error-color;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .delete-button {
+        background: $error-color;
+        color: $dark-bg;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: all 0.2s;
+
+        &:hover:not(:disabled) {
+          background: color.scale($error-color, $lightness: 10%);
+          transform: translateY(-2px);
+        }
+
+        &:disabled {
+          background: $text-color-muted;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    color: $text-color;
+    font-size: 1.2rem;
+    padding: 2rem;
+  }
+
+  .error {
+    text-align: center;
+    color: $lol-gold;
+    font-size: 1.2rem;
+    padding: 2rem;
+
+    .back-button {
+      margin-top: 1rem;
+    }
+  }
+} 

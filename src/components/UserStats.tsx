@@ -12,7 +12,7 @@ import './UserStats.scss';
 export default function UserStats() {
   const [summonerInfo, setSummonerInfo] = useState<SummonerInfo | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalGames: 0,
@@ -32,9 +32,9 @@ export default function UserStats() {
       try {
         setLoading(true);
         setError(null);
-
+        
         // Fetch summoner info
-        const summoner = await fetchSummonerInfo('SwagMuff1n #NA1');
+        const summoner = await fetchSummonerInfo('dooblr#NA1');
         if (!summoner) {
           throw new Error('Summoner not found');
         }
@@ -124,123 +124,123 @@ export default function UserStats() {
     return <div className="error">{error}</div>;
   }
 
-  if (!summonerInfo) {
-    return <div className="error">Summoner not found</div>;
-  }
-
   return (
     <div className="user-stats">
-      <div className="summoner-header">
-        <img 
-          src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summonerInfo.profileIconId}.png`}
-          alt="Profile Icon"
-          className="profile-icon"
-        />
-        <div className="summoner-info">
-          <h2>{summonerInfo.name}</h2>
-          <p>Level {summonerInfo.summonerLevel}</p>
-        </div>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Win Rate</h3>
-          <div className="stat-value">
-            {stats.winRate.toFixed(1)}%
-            <span className="stat-detail">
-              {stats.wins}W {stats.losses}L
-            </span>
+      {summonerInfo && (
+        <>
+          <div className="summoner-header">
+            <img 
+              src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summonerInfo.profileIconId}.png`}
+              alt="Profile Icon"
+              className="profile-icon"
+            />
+            <div className="summoner-info">
+              <h2>{summonerInfo.name}</h2>
+              <p>Level {summonerInfo.summonerLevel}</p>
+            </div>
           </div>
-        </div>
 
-        <div className="stat-card">
-          <h3>KDA</h3>
-          <div className="stat-value">
-            {stats.averageKDA.kills.toFixed(1)} / {stats.averageKDA.deaths.toFixed(1)} / {stats.averageKDA.assists.toFixed(1)}
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>CS</h3>
-          <div className="stat-value">
-            {stats.averageCS.toFixed(1)}
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>Gold</h3>
-          <div className="stat-value">
-            {Math.round(stats.averageGold).toLocaleString()}
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>Damage</h3>
-          <div className="stat-value">
-            {Math.round(stats.averageDamage).toLocaleString()}
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <h3>Vision</h3>
-          <div className="stat-value">
-            {stats.averageVision.toFixed(1)}
-          </div>
-        </div>
-      </div>
-
-      <div className="favorite-champions">
-        <h3>Favorite Champions</h3>
-        <div className="champion-list">
-          {stats.favoriteChampions.map(champion => (
-            <div key={champion.name} className="champion-item">
-              <img 
-                src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${champion.name}.png`}
-                alt={champion.name}
-                className="champion-icon"
-              />
-              <div className="champion-info">
-                <span className="champion-name">{champion.name}</span>
-                <span className="champion-stats">
-                  {champion.wins}W {champion.games - champion.wins}L
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Win Rate</h3>
+              <div className="stat-value">
+                {stats.winRate.toFixed(1)}%
+                <span className="stat-detail">
+                  {stats.wins}W {stats.losses}L
                 </span>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="recent-matches">
-        <h3>Recent Matches</h3>
-        <div className="match-list">
-          {matches.slice(0, 5).map(match => {
-            const participant = match.info.participants.find(p => p.puuid === summonerInfo.puuid);
-            if (!participant) return null;
-
-            return (
-              <div key={match.metadata.matchId} className={`match-item ${participant.win ? 'win' : 'loss'}`}>
-                <div className="match-champion">
-                  <img 
-                    src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${participant.championName}.png`}
-                    alt={participant.championName}
-                  />
-                </div>
-                <div className="match-details">
-                  <div className="match-kda">
-                    {participant.kills}/{participant.deaths}/{participant.assists}
-                  </div>
-                  <div className="match-cs">
-                    {participant.totalMinionsKilled} CS
-                  </div>
-                </div>
-                <div className="match-result">
-                  {participant.win ? 'Victory' : 'Defeat'}
-                </div>
+            <div className="stat-card">
+              <h3>KDA</h3>
+              <div className="stat-value">
+                {stats.averageKDA.kills.toFixed(1)} / {stats.averageKDA.deaths.toFixed(1)} / {stats.averageKDA.assists.toFixed(1)}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+
+            <div className="stat-card">
+              <h3>CS</h3>
+              <div className="stat-value">
+                {stats.averageCS.toFixed(1)}
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <h3>Gold</h3>
+              <div className="stat-value">
+                {Math.round(stats.averageGold).toLocaleString()}
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <h3>Damage</h3>
+              <div className="stat-value">
+                {Math.round(stats.averageDamage).toLocaleString()}
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <h3>Vision</h3>
+              <div className="stat-value">
+                {stats.averageVision.toFixed(1)}
+              </div>
+            </div>
+          </div>
+
+          <div className="favorite-champions">
+            <h3>Favorite Champions</h3>
+            <div className="champion-list">
+              {stats.favoriteChampions.map(champion => (
+                <div key={champion.name} className="champion-item">
+                  <img 
+                    src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${champion.name}.png`}
+                    alt={champion.name}
+                    className="champion-icon"
+                  />
+                  <div className="champion-info">
+                    <span className="champion-name">{champion.name}</span>
+                    <span className="champion-stats">
+                      {champion.wins}W {champion.games - champion.wins}L
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="recent-matches">
+            <h3>Recent Matches</h3>
+            <div className="match-list">
+              {matches.slice(0, 5).map(match => {
+                const participant = match.info.participants.find(p => p.puuid === summonerInfo.puuid);
+                if (!participant) return null;
+
+                return (
+                  <div key={match.metadata.matchId} className={`match-item ${participant.win ? 'win' : 'loss'}`}>
+                    <div className="match-champion">
+                      <img 
+                        src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${participant.championName}.png`}
+                        alt={participant.championName}
+                      />
+                    </div>
+                    <div className="match-details">
+                      <div className="match-kda">
+                        {participant.kills}/{participant.deaths}/{participant.assists}
+                      </div>
+                      <div className="match-cs">
+                        {participant.totalMinionsKilled} CS
+                      </div>
+                    </div>
+                    <div className="match-result">
+                      {participant.win ? 'Victory' : 'Defeat'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
-} 
+}

@@ -1,0 +1,173 @@
+@use '../styles/styleVariables' as *;
+@use "sass:color";
+
+.teams {
+  max-width: $container-xl;
+  margin: 0 auto;
+  padding: $spacing-xl;
+
+  .teams-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-xl;
+
+    h1 {
+      color: $lol-gold;
+      font-size: $font-size-3xl;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: $spacing-md;
+      align-items: center;
+
+      .search-input {
+        padding: $spacing-sm $spacing-md;
+        border: 1px solid $lol-gold;
+        border-radius: $border-radius;
+        background-color: $lol-dark;
+        color: $lol-gold;
+        font-size: $font-size-sm;
+        min-width: 250px;
+
+        &::placeholder {
+          color: $lol-gold-50;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: $lol-gold;
+          box-shadow: 0 0 0 2px $lol-gold-20;
+        }
+      }
+
+      .create-team-button {
+        padding: $spacing-sm $spacing-lg;
+        background-color: $lol-gold;
+        color: $lol-dark;
+        border: none;
+        border-radius: $border-radius;
+        font-size: $font-size-sm;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all $transition-speed ease;
+
+        &:hover {
+          background-color: color.scale($lol-gold, $lightness: -10%);
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+
+      .edit-profile-button {
+        padding: $spacing-sm $spacing-lg;
+        background-color: $discord-blue;
+        color: $discord-light;
+        border: none;
+        border-radius: $border-radius;
+        font-size: $font-size-sm;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all $transition-speed ease;
+
+        &:hover {
+          background-color: color.scale($discord-blue, $lightness: -10%);
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+
+  .teams-table-container {
+    background-color: $lol-dark;
+    border-radius: $border-radius * 2;
+    box-shadow: $box-shadow;
+    overflow: hidden;
+
+    .teams-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th, td {
+        padding: $spacing-md;
+        text-align: left;
+        border-bottom: 1px solid $lol-gold-20;
+      }
+
+      th {
+        background-color: $lol-gold-10;
+        color: $lol-gold;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: $font-size-xs;
+        letter-spacing: 1px;
+
+        &:hover {
+          background-color: $lol-gold-20;
+          cursor: pointer;
+        }
+      }
+
+      .team-row {
+        cursor: pointer;
+        transition: background-color $transition-speed ease;
+
+        &:hover {
+          background-color: $lol-gold-20;
+        }
+
+        td {
+          color: $lol-gold;
+        }
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .discord-link {
+        color: $discord-blue;
+        text-decoration: none;
+        font-weight: 600;
+        padding: $spacing-xs $spacing-lg;
+        border-radius: $border-radius;
+        background-color: $discord-blue-10;
+        transition: all $transition-speed ease;
+
+        &:hover {
+          background-color: $discord-blue-20;
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    color: $lol-gold;
+    font-size: $font-size-lg;
+    padding: $spacing-xl;
+  }
+
+  .error {
+    text-align: center;
+    color: $lol-error;
+    font-size: $font-size-lg;
+    padding: $spacing-xl;
+  }
+} 

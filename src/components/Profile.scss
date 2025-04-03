@@ -1,0 +1,136 @@
+@use '../styles/styleVariables.scss' as *;
+@use 'sass:color';
+
+.profile {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  
+  .profile-container {
+    background-color: $card-bg;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
+    h1 {
+      color: $lol-gold;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: $text-color;
+        font-weight: 500;
+      }
+      
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        background-color: $input-bg;
+        color: $text-color;
+        font-size: 1rem;
+        
+        &:focus {
+          outline: none;
+          border-color: $lol-gold;
+        }
+        
+        &::placeholder {
+          color: $text-color-muted;
+        }
+      }
+
+      .form-hint {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: $text-color-muted;
+      }
+    }
+    
+    .error-message {
+      background-color: rgba($error-color, 0.1);
+      color: $error-color;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    
+    .success-message {
+      background-color: rgba($success-color, 0.1);
+      color: $success-color;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+      
+      button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      
+      .cancel-button {
+        background-color: transparent;
+        color: $text-color;
+        border: 1px solid $border-color;
+        
+        &:hover {
+          background-color: rgba($text-color, 0.1);
+        }
+      }
+      
+      .save-button {
+        background-color: $discord-blue;
+        color: white;
+        border: none;
+        
+        &:hover {
+          background-color: color.scale($discord-blue, $lightness: -10%);
+        }
+        
+        &:disabled {
+          background-color: $text-color-muted;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    color: #c89b3c;
+    font-size: 1.2rem;
+    padding: 2rem;
+  }
+
+  .error {
+    text-align: center;
+    color: #ff4444;
+    font-size: 1.2rem;
+    padding: 2rem;
+    background-color: rgba(255, 68, 68, 0.1);
+    border-radius: 8px;
+    border: 1px solid #ff4444;
+  }
+} 

@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isSummonerNameUnique(summonerName) {
+      return !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.summonerName == summonerName ||
+             !exists(/databases/$(database)/documents/users/$(summonerNameExists(summonerName)));
+    }
+    
+    function summonerNameExists(summonerName) {
+      return summonerName != null && 
+             summonerName != "" &&
+             exists(/databases/$(database)/documents/users) && 
+             (
+               count(
+                 query(/databases/$(database)/documents/users, 
+                 where("summonerName", "==", summonerName))
+               ) == 0
+             );
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+                    isOwner(userId) && 
+                    summonerNameExists(request.resource.data.summonerName);
+      allow update: if isAuthenticated() && 
+                    isOwner(userId) && 
+                    (
+                      request.resource.data.summonerName == resource.data.summonerName || 
+                      summonerNameExists(request.resource.data.summonerName)
+                    );
+    }
+
+    // Teams
+    match /teams/{teamId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        // Allow creator to update
+        resource.data.creatorId == request.auth.uid ||
+        // Allow role updates
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['roles', 'members'])
+      );
+    }
+  }
+}

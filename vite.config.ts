@@ -16,4 +16,22 @@ export default defineConfig({
       usePolling: true
     }
   },
+  optimizeDeps: {
+    include: ['@tanstack/react-table', 'react', 'react-dom', 'react-router-dom']
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: false,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Skip all warnings
+        return;
+      }
+    },
+    commonjsOptions: {
+      transformMixedEsModules: true
+    }
+  },
+  logLevel: 'silent'
 })

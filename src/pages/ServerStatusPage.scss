@@ -1,0 +1,274 @@
+.server-status-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #c9aa71;
+  }
+}
+
+.server-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+
+  label {
+    color: #c9aa71;
+    font-size: 1.1rem;
+  }
+
+  .server-dropdown {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background: #1e2328;
+    border: 1px solid #c9aa71;
+    border-radius: 8px;
+    color: #c9aa71;
+    cursor: pointer;
+    min-width: 300px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #d4b898;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #d4b898;
+      box-shadow: 0 0 0 2px rgba(201, 170, 113, 0.2);
+    }
+
+    option {
+      background: #1e2328;
+      color: #c9aa71;
+      padding: 0.5rem;
+    }
+  }
+}
+
+.servers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.server-card {
+  background: #1e2328;
+  border: 1px solid #c9aa71;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 170, 113, 0.2);
+  }
+
+  &.selected {
+    border-color: #c9aa71;
+    box-shadow: 0 0 0 2px #c9aa71;
+  }
+
+  .server-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h2 {
+      margin: 0;
+      color: #c9aa71;
+      font-size: 1.25rem;
+    }
+
+    .status-indicator {
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      &.online {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+      }
+
+      &.offline {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+      }
+
+      &.issues {
+        background: rgba(241, 196, 15, 0.2);
+        color: #f1c40f;
+      }
+    }
+  }
+
+  .server-details {
+    p {
+      margin: 0.5rem 0;
+      color: #a7a7a7;
+
+      strong {
+        color: #c9aa71;
+      }
+    }
+  }
+}
+
+.server-details-panel {
+  background: #1e2328;
+  border: 1px solid #c9aa71;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-top: 2rem;
+
+  h2 {
+    color: #c9aa71;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .status-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .status-section {
+    h3 {
+      color: #c9aa71;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      color: #a7a7a7;
+      margin: 0.5rem 0;
+
+      &.status {
+        font-weight: 500;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        display: inline-block;
+
+        &.online {
+          background: rgba(46, 204, 113, 0.2);
+          color: #2ecc71;
+        }
+
+        &.offline {
+          background: rgba(231, 76, 60, 0.2);
+          color: #e74c3c;
+        }
+
+        &.issues {
+          background: rgba(241, 196, 15, 0.2);
+          color: #f1c40f;
+        }
+      }
+    }
+  }
+
+  .server-services {
+    h3 {
+      color: #c9aa71;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .service-item {
+      background: rgba(201, 170, 113, 0.1);
+      border: 1px solid #c9aa71;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+
+      h4 {
+        color: #c9aa71;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        color: #a7a7a7;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        &.online {
+          background: rgba(46, 204, 113, 0.2);
+          color: #2ecc71;
+        }
+
+        &.offline {
+          background: rgba(231, 76, 60, 0.2);
+          color: #e74c3c;
+        }
+
+        &.issues {
+          background: rgba(241, 196, 15, 0.2);
+          color: #f1c40f;
+        }
+      }
+    }
+  }
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  color: #c9aa71;
+  font-size: 1.25rem;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .server-status-page {
+    padding: 1rem;
+  }
+
+  .server-selector {
+    flex-direction: column;
+    align-items: stretch;
+
+    .server-dropdown {
+      width: 100%;
+      min-width: unset;
+    }
+  }
+
+  .servers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .server-details-panel {
+    padding: 1rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+} 

@@ -1,0 +1,93 @@
+@use '../styles/styleVariables.scss' as *;
+@use 'sass:color';
+
+.summoner-verification {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: $dark-bg;
+  
+  .verification-container {
+    background-color: $card-bg;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
+    h1 {
+      color: $lol-gold;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    p {
+      color: $text-color;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+      
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: $text-color;
+        font-weight: 500;
+      }
+      
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        background-color: $input-bg;
+        color: $text-color;
+        font-size: 1rem;
+        
+        &:focus {
+          outline: none;
+          border-color: $lol-gold;
+        }
+        
+        &::placeholder {
+          color: $text-color-muted;
+        }
+      }
+    }
+    
+    .error {
+      background-color: rgba($error-color, 0.1);
+      color: $error-color;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    
+    .verify-button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: $lol-gold;
+      color: $dark-bg;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: color.scale($lol-gold, $lightness: -10%);
+      }
+      
+      &:disabled {
+        background-color: $text-color-muted;
+        cursor: not-allowed;
+      }
+    }
+  }
+} 

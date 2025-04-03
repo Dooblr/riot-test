@@ -1,0 +1,144 @@
+@use '../styles/styleVariables' as *;
+@use "sass:color";
+
+.create-team {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 64px);
+  background: #010a13;
+  padding: $spacing-xl;
+  max-width: $container-md;
+  margin: 0 auto;
+
+  .create-team-container {
+    background-color: $lol-dark;
+    border-radius: $border-radius * 2;
+    padding: $spacing-xl;
+    box-shadow: $box-shadow;
+    width: 100%;
+    max-width: 600px;
+
+    h2 {
+      color: $lol-gold;
+      font-size: $font-size-2xl;
+      margin: 0 0 $spacing-xl 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: $spacing-lg;
+
+      label {
+        display: block;
+        color: $lol-gold;
+        margin-bottom: $spacing-sm;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: $spacing-lg;
+        background-color: $lol-dark;
+        border: 1px solid $lol-gold-10;
+        border-radius: $border-radius;
+        color: $lol-light;
+        font-size: $font-size-sm;
+        transition: all $transition-speed ease;
+
+        &:focus {
+          outline: none;
+          border-color: $lol-gold;
+          box-shadow: 0 0 0 2px $lol-gold-20;
+        }
+
+        &::placeholder {
+          color: $lol-gold-50;
+        }
+
+        &[type="url"] {
+          &:focus {
+            border-color: $discord-blue;
+            box-shadow: 0 0 0 2px $discord-blue-20;
+          }
+        }
+      }
+    }
+
+    .roles-preview {
+      background-color: $lol-dark;
+      border-radius: $border-radius * 2;
+      padding: $spacing-lg;
+      margin-bottom: $spacing-xl;
+
+      h3 {
+        color: $lol-gold;
+        font-size: $font-size-lg;
+        margin: 0 0 $spacing-md 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: $spacing-md;
+
+        li {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: $spacing-lg;
+          background-color: $lol-gold-10;
+          border-radius: $border-radius;
+          color: $lol-light;
+
+          .role-name {
+            font-weight: 600;
+          }
+
+          .role-status {
+            color: $lol-gold;
+            font-size: $font-size-xs;
+          }
+        }
+      }
+    }
+
+    .error {
+      background-color: rgba($lol-error, 0.1);
+      color: $lol-error;
+      padding: $spacing-md;
+      border-radius: $border-radius;
+      margin-bottom: $spacing-lg;
+      border: 1px solid $lol-error;
+      text-align: center;
+    }
+
+    .create-button {
+      width: 100%;
+      padding: $spacing-md;
+      background-color: $lol-gold;
+      color: $lol-dark;
+      border: none;
+      border-radius: $border-radius;
+      font-size: $font-size-md;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all $transition-speed ease;
+
+      &:hover {
+        background-color: color.scale($lol-gold, $lightness: -10%);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+} 
