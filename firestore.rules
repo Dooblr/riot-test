@@ -2,58 +2,53 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
+    // Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
+    // Check if user is the owner of a document
     function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-    
-    function isSummonerNameUnique(summonerName) {
-      return !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.summonerName == summonerName ||
-             !exists(/databases/$(database)/documents/users/$(summonerNameExists(summonerName)));
-    }
-    
-    function summonerNameExists(summonerName) {
-      return summonerName != null && 
-             summonerName != "" &&
-             exists(/databases/$(database)/documents/users) && 
-             (
-               count(
-                 query(/databases/$(database)/documents/users, 
-                 where("summonerName", "==", summonerName))
-               ) == 0
-             );
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // User profiles
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && 
-                    isOwner(userId) && 
-                    summonerNameExists(request.resource.data.summonerName);
-      allow update: if isAuthenticated() && 
-                    isOwner(userId) && 
-                    (
-                      request.resource.data.summonerName == resource.data.summonerName || 
-                      summonerNameExists(request.resource.data.summonerName)
-                    );
-    }
-
-    // Teams
+    // Teams collection
     match /teams/{teamId} {
+      // Allow read if authenticated
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
+      
+      // Allow create if authenticated
+      allow create: if isAuthenticated() && 
+                    request.resource.data.creatorId == request.auth.uid;
+      
+      // Allow update by team creator or for specific role updates
       allow update: if isAuthenticated() && (
-        // Allow creator to update
-        resource.data.creatorId == request.auth.uid ||
-        // Allow role updates
-        request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['roles', 'members'])
-      );
+                     // Team creator can update anything
+                     resource.data.creatorId == request.auth.uid ||
+                     
+                     // Allow users to join/leave open roles
+                     (request.resource.data.creatorId == resource.data.creatorId && 
+                      request.resource.data.name == resource.data.name)
+                    );
+      
+      // Only team creator can delete
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+      
+      // Allow access to all subcollections (including comments)
+      match /{document=**} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      }
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read other user profiles
+      allow read: if isAuthenticated();
+      
+      // Users can only write to their own document
+      allow write: if isOwner(userId);
     }
   }
 }

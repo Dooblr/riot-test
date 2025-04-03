@@ -37,31 +37,36 @@
         font-weight: 600;
       }
 
-      input {
+      input, textarea {
         width: 100%;
-        padding: $spacing-lg;
-        background-color: $lol-dark;
-        border: 1px solid $lol-gold-10;
-        border-radius: $border-radius;
-        color: $lol-light;
-        font-size: $font-size-sm;
-        transition: all $transition-speed ease;
+        padding: 0.75rem;
+        background: $input-bg;
+        border: 1px solid $lol-gold-30;
+        border-radius: 4px;
+        color: $text-color;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
 
         &:focus {
           outline: none;
           border-color: $lol-gold;
-          box-shadow: 0 0 0 2px $lol-gold-20;
+          box-shadow: 0 0 5px rgba($lol-gold, 0.2);
         }
 
         &::placeholder {
-          color: $lol-gold-50;
+          color: $text-color-muted;
         }
+      }
 
-        &[type="url"] {
-          &:focus {
-            border-color: $discord-blue;
-            box-shadow: 0 0 0 2px $discord-blue-20;
-          }
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      &[type="url"] {
+        &:focus {
+          border-color: $discord-blue;
+          box-shadow: 0 0 0 2px $discord-blue-20;
         }
       }
     }

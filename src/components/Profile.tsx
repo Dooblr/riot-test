@@ -9,6 +9,7 @@ import {
   where, 
   getDocs 
 } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import './Profile.scss';
 
@@ -110,6 +111,16 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/teams/login');
+    } catch (err) {
+      console.error('Error signing out:', err);
+      setError('Failed to log out');
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading profile...</div>;
   }
@@ -158,6 +169,12 @@ export default function Profile() {
             </button>
           </div>
         </form>
+        
+        <div className="logout-section">
+          <button onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );

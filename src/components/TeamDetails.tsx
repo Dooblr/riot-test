@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, addDoc, query, orderBy, onSnapshot, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import './TeamDetails.scss';
 
@@ -9,6 +9,7 @@ interface Team {
   name: string;
   creatorId: string;
   summonerName: string;
+  description?: string;
   roles: {
     name: string;
     filled: boolean;
@@ -26,6 +27,14 @@ interface Team {
 interface RoleUser {
   userId: string;
   username: string;
+}
+
+interface TeamComment {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  createdAt: Date;
 }
 
 // Role icon mapping
@@ -53,9 +62,22 @@ export default function TeamDetails() {
   const [discordLink, setDiscordLink] = useState('');
   const [isEditingDiscord, setIsEditingDiscord] = useState(false);
   const [discordError, setDiscordError] = useState<string | null>(null);
+  const [description, setDescription] = useState('');
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [isEditingTeamName, setIsEditingTeamName] = useState(false);
+  const [teamName, setTeamName] = useState('');
+  const [teamNameError, setTeamNameError] = useState<string | null>(null);
   const user = auth.currentUser;
+  const [comments, setComments] = useState<TeamComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [submittingComment, setSubmittingComment] = useState(false);
 
   useEffect(() => {
+    // Declare the unsubscribe function outside of fetchTeamDetails
+    let commentsUnsubscribe: (() => void) | undefined;
+    
     const fetchTeamDetails = async () => {
       if (!teamId) return;
 
@@ -73,7 +95,9 @@ export default function TeamDetails() {
         } as Team;
 
         setTeam(teamData);
+        setTeamName(teamData.name);
         setDiscordLink(teamData.discordLink || '');
+        setDescription(teamData.description || '');
 
         // Fetch user information for all filled roles
         const userIds = new Set<string>();
@@ -93,6 +117,42 @@ export default function TeamDetails() {
           }
         }
         setRoleUsers(userProfiles);
+
+        // Set up comments listener with error handling
+        if (teamId) {
+          try {
+            const commentsQuery = query(
+              collection(db, 'teams', teamId, 'comments'),
+              orderBy('createdAt', 'desc')
+            );
+            
+            commentsUnsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+              const commentsList: TeamComment[] = [];
+              snapshot.forEach((doc) => {
+                const data = doc.data();
+                commentsList.push({
+                  id: doc.id,
+                  userId: data.userId,
+                  username: data.username,
+                  text: data.text,
+                  createdAt: data.createdAt?.toDate() || new Date(),
+                });
+              });
+              setComments(commentsList);
+              setCommentError(null); // Clear any previous error
+            }, (error) => {
+              console.error("Error fetching comments:", error);
+              // Set a user-friendly error message
+              setCommentError('Unable to load comments. Please try again later.');
+              // Still provide a valid state for comments
+              setComments([]);
+            });
+          } catch (commentsError) {
+            console.error("Error setting up comments listener:", commentsError);
+            setCommentError('Unable to load comments. Please try again later.');
+            setComments([]);
+          }
+        }
       } catch (err) {
         console.error('Error fetching team details:', err);
         setError('Failed to load team details');
@@ -102,6 +162,13 @@ export default function TeamDetails() {
     };
 
     fetchTeamDetails();
+    
+    // Clean up listeners
+    return () => {
+      if (commentsUnsubscribe) {
+        commentsUnsubscribe();
+      }
+    };
   }, [teamId]);
 
   const getRoleUser = (userId: string | null) => {
@@ -326,6 +393,41 @@ export default function TeamDetails() {
     }
   };
 
+  const handleUpdateDescription = async () => {
+    if (!team || !user) return;
+    
+    // Check if user is the team owner
+    if (user.uid !== team.creatorId) {
+      setDescriptionError('Only the team owner can update the description');
+      return;
+    }
+
+    setDescriptionError(null);
+    
+    try {
+      const teamRef = doc(db, 'teams', team.id);
+      await updateDoc(teamRef, {
+        description: description.trim()
+      });
+
+      // Refresh team data
+      const teamDoc = await getDoc(teamRef);
+      if (teamDoc.exists()) {
+        const teamData = {
+          id: teamDoc.id,
+          ...teamDoc.data(),
+          createdAt: teamDoc.data().createdAt?.toDate()
+        } as Team;
+        setTeam(teamData);
+      }
+
+      setIsEditingDescription(false);
+    } catch (err) {
+      console.error('Error updating description:', err);
+      setDescriptionError('Failed to update description');
+    }
+  };
+
   const handleDeleteTeam = async () => {
     if (!team || !user) return;
 
@@ -344,6 +446,144 @@ export default function TeamDetails() {
       console.error('Error deleting team:', err);
       setDeleteError('Failed to delete team');
       setIsDeleting(false);
+    }
+  };
+
+  const handleUpdateTeamName = async () => {
+    if (!team || !isTeamOwner()) return;
+    
+    if (!teamName.trim()) {
+      setTeamNameError('Team name cannot be empty');
+      return;
+    }
+
+    try {
+      const teamRef = doc(db, 'teams', team.id);
+      await updateDoc(teamRef, {
+        name: teamName.trim()
+      });
+
+      // Update local state
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        return { ...prevTeam, name: teamName.trim() };
+      });
+      
+      setTeamNameError(null);
+      setIsEditingTeamName(false);
+    } catch (err) {
+      console.error('Error updating team name:', err);
+      setTeamNameError('Failed to update team name');
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!user || !team || !newComment.trim()) {
+      setCommentError('Please enter a comment');
+      return;
+    }
+    
+    setSubmittingComment(true);
+    setCommentError(null);
+    
+    try {
+      // Get current user's name
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        throw new Error('User profile not found');
+      }
+      
+      const userData = userDoc.data();
+      const username = userData.summonerName || userData.username || 'Unknown';
+      
+      // Add comment to the team's comments subcollection
+      try {
+        await addDoc(collection(db, 'teams', team.id, 'comments'), {
+          userId: user.uid,
+          username,
+          text: newComment.trim(),
+          createdAt: serverTimestamp()
+        });
+        
+        // Clear the comment input
+        setNewComment('');
+        setCommentError(null);
+      } catch (writeError) {
+        console.error('Error writing comment to database:', writeError);
+        setCommentError('Unable to post comment. Please try again later.');
+      }
+    } catch (err) {
+      console.error('Error posting comment:', err);
+      setCommentError('Failed to post comment. Please check your connection and try again.');
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleRemoveUser = async (roleIndex: number) => {
+    if (!user || !team || !isTeamOwner()) {
+      return;
+    }
+
+    try {
+      const updatedRoles = [...team.roles];
+      const userToRemove = updatedRoles[roleIndex].userId;
+      
+      if (!userToRemove) return;
+      
+      // Update the role to be unfilled
+      updatedRoles[roleIndex] = {
+        ...updatedRoles[roleIndex],
+        filled: false,
+        userId: undefined
+      };
+
+      // Find the member to remove
+      const memberToRemove = team.members.find(m => 
+        m.userId === userToRemove && m.role === updatedRoles[roleIndex].name
+      );
+
+      // Update Firestore
+      const teamRef = doc(db, 'teams', team.id);
+      await updateDoc(teamRef, { roles: updatedRoles });
+      
+      if (memberToRemove) {
+        await updateDoc(teamRef, {
+          members: arrayRemove(memberToRemove)
+        });
+      }
+
+      // Update local state
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        
+        // Filter out the removed member
+        const updatedMembers = prevTeam.members.filter(m => 
+          !(m.userId === userToRemove && m.role === updatedRoles[roleIndex].name)
+        );
+        
+        return {
+          ...prevTeam,
+          roles: updatedRoles,
+          members: updatedMembers
+        };
+      });
+
+    } catch (err) {
+      console.error('Error removing user:', err);
+      setError('Failed to remove user from team');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user || !team) return;
+    
+    try {
+      await deleteDoc(doc(db, 'teams', team.id, 'comments', commentId));
+      // No need to update state manually as the onSnapshot listener will catch this change
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      setCommentError('Failed to delete comment');
     }
   };
 
@@ -371,7 +611,48 @@ export default function TeamDetails() {
       </button>
 
       <div className="team-header">
-        <h2>{team.name}</h2>
+        {isEditingTeamName && isTeamOwner() ? (
+          <div className="edit-team-name">
+            <input
+              type="text"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              className="team-name-input"
+              placeholder="Enter team name"
+              autoFocus
+            />
+            {teamNameError && <div className="error-message">{teamNameError}</div>}
+            <div className="edit-actions">
+              <button className="save-button" onClick={handleUpdateTeamName}>
+                Save
+              </button>
+              <button 
+                className="cancel-button" 
+                onClick={() => {
+                  setIsEditingTeamName(false);
+                  setTeamName(team.name);
+                  setTeamNameError(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="team-name-container">
+            <h2>{team.name}</h2>
+            {isTeamOwner() && (
+              <button 
+                className="edit-name-button"
+                onClick={() => setIsEditingTeamName(true)}
+                title="Edit team name"
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+        )}
+        
         <div className="team-creator">
           <span>Created by</span>
           <span className="creator-name">{team.summonerName}</span>
@@ -392,6 +673,67 @@ export default function TeamDetails() {
       </div>
 
       {joinError && <div className="join-error">{joinError}</div>}
+
+      <div className="description-section">
+        <h3>Team Description</h3>
+        {isEditingDescription ? (
+          <div className="description-edit">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your team, goals, schedule, etc."
+              className="description-textarea"
+              rows={4}
+            />
+            {descriptionError && <div className="description-error">{descriptionError}</div>}
+            <div className="description-actions">
+              <button 
+                onClick={handleUpdateDescription} 
+                className="save-description-button"
+              >
+                Save Description
+              </button>
+              <button 
+                onClick={() => {
+                  setIsEditingDescription(false);
+                  setDescription(team.description || '');
+                  setDescriptionError(null);
+                }} 
+                className="cancel-description-button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="description-display">
+            {team.description ? (
+              <>
+                <p className="team-description">{team.description}</p>
+                {isTeamOwner() && (
+                  <button 
+                    onClick={() => setIsEditingDescription(true)} 
+                    className="edit-description-button"
+                  >
+                    Edit Description
+                  </button>
+                )}
+              </>
+            ) : (
+              isTeamOwner() ? (
+                <button 
+                  onClick={() => setIsEditingDescription(true)} 
+                  className="add-description-button"
+                >
+                  Add Team Description
+                </button>
+              ) : (
+                <div className="no-description">No team description provided</div>
+              )
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="discord-section">
         <h3>Discord Server</h3>
@@ -462,44 +804,125 @@ export default function TeamDetails() {
       </div>
 
       <div className="roles-grid">
-        {team.roles.map((role) => (
-          <div key={role.name} className={`role-card ${role.name.toLowerCase()}`}>
-            <h3>
-              <span className="role-icon">{roleIcons[role.name] || '👤'}</span>
-              {role.name}
-            </h3>
-            {role.filled ? (
-              <div className="player-info">
-                <span className="player-name">
-                  {getRoleUser(role.userId)?.username || 'Unknown'}
-                </span>
-                {role.userId === user?.uid && (
-                  <span className="your-role-badge">You</span>
-                )}
-              </div>
-            ) : (
-              <div className="role-open">
-                <span>Open</span>
-                {!isUserInAnyRole(user?.uid) ? (
-                  <button 
-                    onClick={() => handleJoinRole(role.name)}
-                    className="join-button"
-                  >
-                    Join
-                  </button>
-                ) : user && currentUserRole ? (
-                  <button 
-                    onClick={() => handleSwapRole(role.name)}
-                    className="select-button"
-                    disabled={isSwapping}
-                  >
-                    {isSwapping ? 'Swapping...' : 'Select'}
-                  </button>
-                ) : null}
-              </div>
-            )}
+        {team.roles.map((role) => {
+          // Determine the role status for styling
+          const isUserRole = role.userId === user?.uid;
+          const isFilled = role.filled;
+          
+          return (
+            <div 
+              key={role.name} 
+              className={`role-card ${role.name.toLowerCase()} ${isUserRole ? 'user-role' : ''} ${isFilled ? 'filled-role' : 'empty-role'}`}
+            >
+              <h3>
+                <span className="role-icon">{roleIcons[role.name] || '👤'}</span>
+                {role.name}
+              </h3>
+              {role.filled ? (
+                <div className="player-info">
+                  <span className="player-name">
+                    {getRoleUser(role.userId)?.username || 'Unknown'}
+                  </span>
+                  {role.userId === user?.uid && (
+                    <span className="your-role-badge">You</span>
+                  )}
+                  {isTeamOwner() && role.userId !== user?.uid && (
+                    <button 
+                      onClick={() => handleRemoveUser(team.roles.findIndex(r => r.name === role.name))}
+                      className="remove-user-button"
+                      title="Remove user from role"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="role-open">
+                  {!isUserInAnyRole(user?.uid) ? (
+                    <button 
+                      onClick={() => handleJoinRole(role.name)}
+                      className="join-button"
+                    >
+                      Join
+                    </button>
+                  ) : user && currentUserRole ? (
+                    <button 
+                      onClick={() => handleSwapRole(role.name)}
+                      className="select-button"
+                      disabled={isSwapping}
+                    >
+                      {isSwapping ? 'Swapping...' : 'Select'}
+                    </button>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Comments Section */}
+      <div className="comments-section">
+        <h3>Team Discussion</h3>
+        
+        {user ? (
+          <div className="comment-form">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment..."
+              rows={3}
+              className="comment-input"
+            />
+            {commentError && <div className="comment-error">{commentError}</div>}
+            <button 
+              onClick={handlePostComment}
+              disabled={submittingComment || !newComment.trim()}
+              className="post-comment-button"
+            >
+              {submittingComment ? 'Posting...' : 'Post Comment'}
+            </button>
           </div>
-        ))}
+        ) : (
+          <div className="login-to-comment">
+            Please log in to join the discussion.
+          </div>
+        )}
+        
+        <div className="comments-list">
+          {commentError && comments.length === 0 ? (
+            <div className="comments-error">
+              {commentError}
+            </div>
+          ) : comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="comment-item">
+                <div className="comment-header">
+                  <span className="comment-author">{comment.username}</span>
+                  <div className="comment-actions">
+                    <span className="comment-time">
+                      {comment.createdAt.toLocaleString()}
+                    </span>
+                    {(comment.userId === user?.uid || isTeamOwner()) && (
+                      <button 
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="delete-comment-button"
+                        title="Delete comment"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="comment-text">{comment.text}</div>
+              </div>
+            ))
+          ) : (
+            <div className="no-comments">
+              No comments yet. Be the first to start a discussion!
+            </div>
+          )}
+        </div>
       </div>
 
       {isTeamOwner() && (
@@ -541,4 +964,4 @@ export default function TeamDetails() {
       )}
     </div>
   );
-} 
+}

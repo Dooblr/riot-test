@@ -22,6 +22,7 @@ interface UserProfile {
 export default function CreateTeam() {
   const [teamName, setTeamName] = useState('');
   const [discordLink, setDiscordLink] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ export default function CreateTeam() {
         name: teamName,
         creatorId: user.uid,
         summonerName: userProfile.summonerName,
+        description: description.trim() || null,
         roles: roles,
         createdAt: new Date(),
         discordLink: discordLink || null,
@@ -102,6 +104,16 @@ export default function CreateTeam() {
               onChange={(e) => setTeamName(e.target.value)}
               required
               placeholder="Enter team name"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="description">Team Description (Optional)</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your team, goals, schedule, etc."
+              rows={4}
             />
           </div>
           <div className="form-group">

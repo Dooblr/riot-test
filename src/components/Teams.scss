@@ -1,16 +1,29 @@
 @use '../styles/styleVariables' as *;
 @use "sass:color";
 
+$lol-error-10: #e74c3c;
+$lol-error-20: #e74c3c;
+$green-color: #4CAF50;
+$green-color-dark: #388E3C;
+
 .teams {
   max-width: $container-xl;
   margin: 0 auto;
   padding: $spacing-xl;
+  padding-top: $spacing-md;
 
   .teams-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: $spacing-xl;
+    margin-bottom: $spacing-lg;
+    position: relative;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+    }
 
     h1 {
       color: $lol-gold;
@@ -18,119 +31,317 @@
       margin: 0;
       text-transform: uppercase;
       letter-spacing: 2px;
+
+      @media (max-width: $breakpoint-md) {
+        font-size: $font-size-2xl;
+      }
     }
 
-    .header-actions {
+    .profile-button {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: $discord-blue;
       display: flex;
-      gap: $spacing-md;
       align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
 
-      .search-input {
-        padding: $spacing-sm $spacing-md;
-        border: 1px solid $lol-gold;
-        border-radius: $border-radius;
-        background-color: $lol-dark;
-        color: $lol-gold;
-        font-size: $font-size-sm;
-        min-width: 250px;
-
-        &::placeholder {
-          color: $lol-gold-50;
-        }
-
-        &:focus {
-          outline: none;
-          border-color: $lol-gold;
-          box-shadow: 0 0 0 2px $lol-gold-20;
-        }
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       }
 
-      .create-team-button {
-        padding: $spacing-sm $spacing-lg;
-        background-color: $lol-gold;
-        color: $lol-dark;
-        border: none;
-        border-radius: $border-radius;
-        font-size: $font-size-sm;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all $transition-speed ease;
-
-        &:hover {
-          background-color: color.scale($lol-gold, $lightness: -10%);
-          transform: translateY(-1px);
-        }
-
-        &:active {
-          transform: translateY(0);
-        }
-      }
-
-      .edit-profile-button {
-        padding: $spacing-sm $spacing-lg;
-        background-color: $discord-blue;
-        color: $discord-light;
-        border: none;
-        border-radius: $border-radius;
-        font-size: $font-size-sm;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all $transition-speed ease;
-
-        &:hover {
-          background-color: color.scale($discord-blue, $lightness: -10%);
-          transform: translateY(-1px);
-        }
-
-        &:active {
-          transform: translateY(0);
-        }
-      }
-
-      .logout-button {
-        padding: $spacing-sm $spacing-lg;
-        background-color: $error-color;
+      .profile-icon {
         color: white;
-        border: none;
-        border-radius: $border-radius;
-        font-size: $font-size-sm;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all $transition-speed ease;
+        font-size: $font-size-lg;
+        font-weight: bold;
+      }
+    }
 
-        &:hover {
-          background-color: color.scale($error-color, $lightness: -10%);
-          transform: translateY(-1px);
+    // Green Create Team button
+    .create-team-button {
+      height: 48px;
+      padding: 0 $spacing-lg;
+      border-radius: $border-radius;
+      font-size: $font-size-sm;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all $transition-speed ease;
+      white-space: nowrap;
+      border: none;
+      background-color: $green-color;
+      color: white;
+
+      &:hover {
+        background-color: $green-color-dark;
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      @media (max-width: $breakpoint-md) {
+        display: none;
+      }
+    }
+
+    // Mobile menu toggle button
+    .mobile-menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: $lol-gold;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 48px;
+      height: 48px;
+      padding: 12px;
+      border-radius: $border-radius;
+      position: relative;
+      z-index: 11;
+
+      &:hover {
+        background: $lol-gold-10;
+      }
+
+      @media (max-width: $breakpoint-md) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .hamburger-icon {
+        position: relative;
+        width: 24px;
+        height: 2px;
+        background-color: $lol-gold;
+        transition: all 0.3s ease;
+
+        &::before,
+        &::after {
+          content: '';
+          position: absolute;
+          width: 24px;
+          height: 2px;
+          background-color: $lol-gold;
+          transition: all 0.3s ease;
         }
 
-        &:active {
-          transform: translateY(0);
+        &::before {
+          transform: translateY(-8px);
+        }
+
+        &::after {
+          transform: translateY(8px);
         }
       }
 
-      .my-teams-button {
-        padding: $spacing-sm $spacing-lg;
-        background-color: $lol-dark;
-        color: $lol-gold;
-        border: 1px solid $lol-gold;
+      &.active {
+        .hamburger-icon {
+          background-color: transparent;
+
+          &::before {
+            transform: rotate(45deg);
+          }
+
+          &::after {
+            transform: rotate(-45deg);
+          }
+        }
+      }
+    }
+  }
+
+  // New filters section
+  .teams-filters {
+    margin-bottom: $spacing-xl;
+    
+    @media (max-width: $breakpoint-md) {
+      display: none;
+      background-color: $lol-dark;
+      border-radius: $border-radius;
+      box-shadow: $box-shadow;
+      padding: $spacing-md;
+      position: absolute;
+      right: $spacing-xl;
+      top: 130px;
+      width: 300px;
+      z-index: 10;
+      
+      &.mobile-open {
+        display: block;
+      }
+    }
+    
+    .mobile-buttons {
+      display: none;
+      
+      @media (max-width: $breakpoint-md) {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-sm;
+        margin-bottom: $spacing-md;
+        border-bottom: 1px solid $lol-gold-20;
+        padding-bottom: $spacing-md;
+        
+        .create-team-button, .edit-profile-button, .logout-button {
+          width: 100%;
+          height: 48px;
+          padding: 0 $spacing-lg;
+          border-radius: $border-radius;
+          font-size: $font-size-sm;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all $transition-speed ease;
+          border: none;
+        }
+        
+        .create-team-button {
+          background-color: $green-color;
+          color: white;
+          
+          &:hover {
+            background-color: $green-color-dark;
+          }
+        }
+        
+        .edit-profile-button {
+          background-color: $discord-blue;
+          color: white;
+          
+          &:hover {
+            background-color: color.scale($discord-blue, $lightness: -10%);
+          }
+        }
+        
+        .logout-button {
+          background-color: $error-color;
+          color: white;
+          
+          &:hover {
+            background-color: color.scale($error-color, $lightness: -10%);
+          }
+        }
+      }
+    }
+    
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-md;
+      align-items: flex-start;
+      
+      @media (max-width: $breakpoint-md) {
+        flex-direction: column;
+        gap: $spacing-sm;
+      }
+      
+      .search-container {
+        position: relative;
+        flex: 1;
+        min-width: 250px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+
+        @media (max-width: $breakpoint-md) {
+          width: 100%;
+        }
+
+        .search-input {
+          width: 100%;
+          height: 48px;
+          padding: 0 $spacing-md;
+          padding-right: 120px;
+          background-color: $lol-dark;
+          border: 1px solid $lol-gold-10;
+          border-radius: $border-radius;
+          color: $lol-light;
+          font-size: $font-size-sm;
+          transition: all $transition-speed ease;
+
+          &:focus {
+            outline: none;
+            border-color: $lol-gold;
+            box-shadow: 0 0 0 2px $lol-gold-20;
+          }
+
+          &::placeholder {
+            color: $lol-gold-50;
+          }
+        }
+
+        .clear-filters-button {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: $lol-error-10;
+          color: white;
+          border: none;
+          border-radius: $border-radius;
+          padding: 0 $spacing-md;
+          height: 36px;
+          font-size: $font-size-xs;
+          cursor: pointer;
+          transition: all $transition-speed ease;
+          display: flex;
+          align-items: center;
+          
+          &::before {
+            content: '×';
+            font-size: $font-size-md;
+            margin-right: $spacing-xs;
+          }
+          
+          &:hover {
+            background: $lol-error-20;
+          }
+        }
+      }
+    }
+  }
+  
+  // Mobile buttons for the mobile menu
+  @media (max-width: $breakpoint-md) {
+    .teams-filters.mobile-open {
+      .mobile-buttons {
+        margin-bottom: $spacing-md;
+        border-bottom: 1px solid $lol-gold-20;
+        padding-bottom: $spacing-md;
+      }
+      
+      .create-team-button {
+        width: 100%;
+        margin-bottom: $spacing-sm;
+        height: 48px;
+        padding: 0 $spacing-lg;
         border-radius: $border-radius;
         font-size: $font-size-sm;
         font-weight: 600;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: all $transition-speed ease;
-
+        white-space: nowrap;
+        border: none;
+        background-color: $green-color;
+        color: white;
+        
         &:hover {
-          background-color: $lol-gold-10;
-          transform: translateY(-1px);
-        }
-
-        &:active {
-          transform: translateY(0);
-        }
-
-        &.active {
-          background-color: $lol-gold;
-          color: $lol-dark;
+          background-color: $green-color-dark;
         }
       }
     }
@@ -141,6 +352,7 @@
     border-radius: $border-radius * 2;
     box-shadow: $box-shadow;
     overflow: hidden;
+    overflow-x: auto;
 
     .no-teams-message {
       padding: $spacing-xl;
@@ -153,6 +365,7 @@
     .teams-table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 650px;
 
       th, td {
         padding: $spacing-md;
@@ -199,6 +412,7 @@
         border-radius: $border-radius;
         background-color: $discord-blue-10;
         transition: all $transition-speed ease;
+        display: inline-block;
 
         &:hover {
           background-color: $discord-blue-20;
@@ -224,5 +438,66 @@
     color: $lol-error;
     font-size: $font-size-lg;
     padding: $spacing-xl;
+  }
+
+  .role-filter-container {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    margin-right: $spacing-md;
+    margin-bottom: 0;
+    min-width: 300px;
+    
+    @media (max-width: $breakpoint-md) {
+      margin-right: 0;
+      min-width: auto;
+      margin-bottom: $spacing-md;
+      width: 100%;
+    }
+    
+    .role-filter-label {
+      font-size: $font-size-xs;
+      color: $lol-gold;
+      margin-bottom: $spacing-xs;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .role-filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-xs;
+      
+      @media (max-width: $breakpoint-md) {
+        justify-content: center;
+      }
+      
+      .role-filter-button {
+        height: 40px;
+        background: $lol-gold-10;
+        color: $text-color;
+        border: 1px solid $lol-gold-10;
+        padding: 0 $spacing-md;
+        border-radius: $border-radius;
+        font-size: $font-size-xs;
+        cursor: pointer;
+        transition: all $transition-speed ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        &:hover {
+          background: $lol-gold-20;
+        }
+        
+        &.active {
+          background: $lol-gold;
+          color: $lol-dark;
+          border-color: $lol-gold;
+          font-weight: 600;
+        }
+      }
+    }
   }
 } 
