@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, deleteDoc, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import './TeamDetails.scss';
 
@@ -20,12 +20,22 @@ interface Team {
     joinedAt: Date;
   }[];
   createdAt: Date;
+  discordLink?: string;
 }
 
 interface RoleUser {
   userId: string;
   username: string;
 }
+
+// Role icon mapping
+const roleIcons: Record<string, string> = {
+  'Top': '🛡️',
+  'Jungle': '🌲',
+  'Mid': '✨',
+  'ADC': '🏹',
+  'Support': '💖',
+};
 
 export default function TeamDetails() {
   const { teamId } = useParams();
@@ -38,6 +48,11 @@ export default function TeamDetails() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
+  const [isDeleteSectionOpen, setIsDeleteSectionOpen] = useState(false);
+  const [discordLink, setDiscordLink] = useState('');
+  const [isEditingDiscord, setIsEditingDiscord] = useState(false);
+  const [discordError, setDiscordError] = useState<string | null>(null);
   const user = auth.currentUser;
 
   useEffect(() => {
@@ -58,6 +73,7 @@ export default function TeamDetails() {
         } as Team;
 
         setTeam(teamData);
+        setDiscordLink(teamData.discordLink || '');
 
         // Fetch user information for all filled roles
         const userIds = new Set<string>();
@@ -96,6 +112,12 @@ export default function TeamDetails() {
   const getOpenRolesCount = () => {
     if (!team) return 0;
     return team.roles.filter(role => !role.filled).length;
+  };
+
+  const getUserRole = () => {
+    if (!user || !team) return null;
+    const userRole = team.roles.find(role => role.userId === user.uid);
+    return userRole ? userRole.name : null;
   };
 
   const isUserInAnyRole = (userId: string | null) => {
@@ -176,6 +198,134 @@ export default function TeamDetails() {
     }
   };
 
+  const handleSwapRole = async (newRoleName: string) => {
+    if (!user || !team) {
+      setJoinError('You must be logged in to swap roles');
+      return;
+    }
+
+    setIsSwapping(true);
+    setJoinError(null);
+
+    try {
+      // Find current user role
+      const currentRole = team.roles.find(role => role.userId === user.uid);
+      if (!currentRole) {
+        setJoinError('You are not currently in any role');
+        setIsSwapping(false);
+        return;
+      }
+
+      // Find new role
+      const newRoleIndex = team.roles.findIndex(r => r.name === newRoleName);
+      if (newRoleIndex === -1) {
+        setJoinError('Selected role does not exist');
+        setIsSwapping(false);
+        return;
+      }
+
+      // Check if new role is already filled
+      if (team.roles[newRoleIndex].filled) {
+        setJoinError('The selected role is already filled');
+        setIsSwapping(false);
+        return;
+      }
+
+      // Update the team with the role swap
+      const teamRef = doc(db, 'teams', team.id);
+      const updatedRoles = [...team.roles];
+      
+      // Remove user from current role
+      const currentRoleIndex = updatedRoles.findIndex(r => r.userId === user.uid);
+      updatedRoles[currentRoleIndex] = {
+        ...updatedRoles[currentRoleIndex],
+        filled: false,
+        userId: null
+      };
+      
+      // Add user to new role
+      updatedRoles[newRoleIndex] = {
+        ...updatedRoles[newRoleIndex],
+        filled: true,
+        userId: user.uid
+      };
+
+      // Update members array
+      const oldMember = team.members.find(m => m.userId === user.uid && m.role === currentRole.name);
+      const newMember = {
+        userId: user.uid,
+        role: newRoleName,
+        joinedAt: new Date()
+      };
+
+      await updateDoc(teamRef, {
+        roles: updatedRoles,
+        members: arrayRemove(oldMember)
+      });
+
+      await updateDoc(teamRef, {
+        members: arrayUnion(newMember)
+      });
+
+      // Refresh the team data
+      const teamDoc = await getDoc(teamRef);
+      if (teamDoc.exists()) {
+        const teamData = {
+          id: teamDoc.id,
+          ...teamDoc.data(),
+          createdAt: teamDoc.data().createdAt?.toDate()
+        } as Team;
+        setTeam(teamData);
+      }
+    } catch (err) {
+      console.error('Error swapping roles:', err);
+      setJoinError('Failed to swap roles');
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
+  const handleUpdateDiscordLink = async () => {
+    if (!team || !user) return;
+    
+    // Check if user is the team owner
+    if (user.uid !== team.creatorId) {
+      setDiscordError('Only the team owner can update the Discord link');
+      return;
+    }
+
+    setDiscordError(null);
+    
+    try {
+      // Validate discord link
+      let formattedLink = discordLink.trim();
+      if (formattedLink && !formattedLink.startsWith('http')) {
+        formattedLink = `https://${formattedLink}`;
+      }
+
+      const teamRef = doc(db, 'teams', team.id);
+      await updateDoc(teamRef, {
+        discordLink: formattedLink
+      });
+
+      // Refresh team data
+      const teamDoc = await getDoc(teamRef);
+      if (teamDoc.exists()) {
+        const teamData = {
+          id: teamDoc.id,
+          ...teamDoc.data(),
+          createdAt: teamDoc.data().createdAt?.toDate()
+        } as Team;
+        setTeam(teamData);
+      }
+
+      setIsEditingDiscord(false);
+    } catch (err) {
+      console.error('Error updating Discord link:', err);
+      setDiscordError('Failed to update Discord link');
+    }
+  };
+
   const handleDeleteTeam = async () => {
     if (!team || !user) return;
 
@@ -212,6 +362,8 @@ export default function TeamDetails() {
     );
   }
 
+  const currentUserRole = getUserRole();
+
   return (
     <div className="team-details">
       <button onClick={() => navigate('/teams')} className="back-button">
@@ -241,26 +393,109 @@ export default function TeamDetails() {
 
       {joinError && <div className="join-error">{joinError}</div>}
 
+      <div className="discord-section">
+        <h3>Discord Server</h3>
+        {isEditingDiscord ? (
+          <div className="discord-edit">
+            <input
+              type="text"
+              value={discordLink}
+              onChange={(e) => setDiscordLink(e.target.value)}
+              placeholder="Enter Discord invite link"
+              className="discord-input"
+            />
+            {discordError && <div className="discord-error">{discordError}</div>}
+            <div className="discord-actions">
+              <button 
+                onClick={handleUpdateDiscordLink} 
+                className="save-discord-button"
+              >
+                Save Link
+              </button>
+              <button 
+                onClick={() => {
+                  setIsEditingDiscord(false);
+                  setDiscordLink(team.discordLink || '');
+                  setDiscordError(null);
+                }} 
+                className="cancel-discord-button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="discord-display">
+            {team.discordLink ? (
+              <>
+                <a 
+                  href={team.discordLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="discord-link-button"
+                >
+                  Join Discord Server
+                </a>
+                {isTeamOwner() && (
+                  <button 
+                    onClick={() => setIsEditingDiscord(true)} 
+                    className="edit-discord-button"
+                  >
+                    Edit Link
+                  </button>
+                )}
+              </>
+            ) : (
+              isTeamOwner() ? (
+                <button 
+                  onClick={() => setIsEditingDiscord(true)} 
+                  className="add-discord-button"
+                >
+                  Add Discord Link
+                </button>
+              ) : (
+                <div className="no-discord">No Discord link provided</div>
+              )
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="roles-grid">
         {team.roles.map((role) => (
           <div key={role.name} className={`role-card ${role.name.toLowerCase()}`}>
-            <h3>{role.name}</h3>
+            <h3>
+              <span className="role-icon">{roleIcons[role.name] || '👤'}</span>
+              {role.name}
+            </h3>
             {role.filled ? (
               <div className="player-info">
                 <span className="player-name">
                   {getRoleUser(role.userId)?.username || 'Unknown'}
                 </span>
+                {role.userId === user?.uid && (
+                  <span className="your-role-badge">You</span>
+                )}
               </div>
             ) : (
               <div className="role-open">
                 <span>Open</span>
-                <button 
-                  onClick={() => handleJoinRole(role.name)}
-                  className="join-button"
-                  disabled={isUserInAnyRole(user?.uid)}
-                >
-                  Join
-                </button>
+                {!isUserInAnyRole(user?.uid) ? (
+                  <button 
+                    onClick={() => handleJoinRole(role.name)}
+                    className="join-button"
+                  >
+                    Join
+                  </button>
+                ) : user && currentUserRole ? (
+                  <button 
+                    onClick={() => handleSwapRole(role.name)}
+                    className="select-button"
+                    disabled={isSwapping}
+                  >
+                    {isSwapping ? 'Swapping...' : 'Select'}
+                  </button>
+                ) : null}
               </div>
             )}
           </div>
@@ -268,29 +503,40 @@ export default function TeamDetails() {
       </div>
 
       {isTeamOwner() && (
-        <div className="delete-team-section">
-          <h3>Delete Team</h3>
-          <p className="warning">
-            This action cannot be undone. All team data will be permanently deleted.
-          </p>
-          <div className="delete-confirmation">
-            <p>To confirm deletion, please type the team name: <strong>{team.name}</strong></p>
-            <input
-              type="text"
-              value={deleteConfirmation}
-              onChange={(e) => setDeleteConfirmation(e.target.value)}
-              placeholder="Enter team name"
-              className="delete-input"
-            />
-            {deleteError && <div className="delete-error">{deleteError}</div>}
-            <button
-              onClick={handleDeleteTeam}
-              disabled={deleteConfirmation !== team.name || isDeleting}
-              className="delete-button"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Team'}
-            </button>
-          </div>
+        <div className="delete-team-container">
+          <button 
+            onClick={() => setIsDeleteSectionOpen(!isDeleteSectionOpen)} 
+            className="delete-toggle-button"
+          >
+            {isDeleteSectionOpen ? 'Hide Delete Options ▲' : 'Delete Team ▼'}
+          </button>
+          
+          {isDeleteSectionOpen && (
+            <div className="delete-team-section">
+              <h3>Delete Team</h3>
+              <p className="warning">
+                This action cannot be undone. All team data will be permanently deleted.
+              </p>
+              <div className="delete-confirmation">
+                <p>To confirm deletion, please type the team name: <strong>{team.name}</strong></p>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="Enter team name"
+                  className="delete-input"
+                />
+                {deleteError && <div className="delete-error">{deleteError}</div>}
+                <button
+                  onClick={handleDeleteTeam}
+                  disabled={deleteConfirmation !== team.name || isDeleting}
+                  className="delete-button"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Team'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

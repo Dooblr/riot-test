@@ -51,6 +51,7 @@ interface Team {
     joinedAt: Date;
   }[];
   discordLink?: string;
+  createdAt: Date;
 }
 
 interface UserProfile {
@@ -94,7 +95,13 @@ const columns = [
   }),
   columnHelper.accessor('members', {
     header: 'Members',
-    cell: info => info.getValue().length,
+    cell: info => {
+      const team = info.row.original;
+      const memberIds = new Set(team.members.map(member => member.userId));
+      
+      // Don't double-count the creator if they're also in a role
+      return memberIds.size;
+    },
   }),
   columnHelper.accessor('discordLink', {
     header: 'Discord',
@@ -125,6 +132,7 @@ export default function Teams() {
   const [error, setError] = useState<string | null>(null);
   const [roleUsers, setRoleUsers] = useState<Record<string, RoleUser>>({});
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
   const navigate = useNavigate();
 
   // Table state
@@ -162,10 +170,32 @@ export default function Teams() {
 
         const teamsQuery = query(collection(db, 'teams'));
         const teamsSnapshot = await getDocs(teamsQuery);
-        const teamsData = teamsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Team[];
+        
+        // Create properly typed teams array
+        const teamsData: Team[] = [];
+        
+        teamsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          
+          // Convert any Firestore timestamps to JavaScript Date objects
+          const members = data.members || [];
+          const processedMembers = members.map((member: any) => ({
+            userId: member.userId,
+            role: member.role,
+            joinedAt: member.joinedAt?.toDate ? member.joinedAt.toDate() : new Date(member.joinedAt)
+          }));
+          
+          teamsData.push({
+            id: doc.id,
+            name: data.name,
+            creatorId: data.creatorId,
+            summonerName: data.summonerName,
+            roles: data.roles || [],
+            members: processedMembers,
+            discordLink: data.discordLink,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
+          });
+        });
 
         setTeams(teamsData);
 
@@ -199,8 +229,21 @@ export default function Teams() {
     fetchTeams();
   }, [user]);
 
+  // Filter teams based on user involvement if "My Teams" is toggled
+  const filteredTeams = showMyTeamsOnly && user
+    ? teams.filter(team => {
+        // Check if user is a creator
+        if (team.creatorId === user.uid) return true;
+        
+        // Check if user is a member in a role
+        const hasRole = team.roles && team.roles.some(role => role.userId === user.uid);
+        
+        return hasRole;
+      })
+    : teams;
+
   const table = useReactTable({
-    data: teams,
+    data: filteredTeams,
     columns,
     state: {
       sorting,
@@ -229,6 +272,20 @@ export default function Teams() {
     navigate('/teams/profile');
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/teams/login');
+    } catch (err) {
+      console.error('Error signing out:', err);
+      setError('Failed to log out');
+    }
+  };
+
+  const toggleMyTeams = () => {
+    setShowMyTeamsOnly(prev => !prev);
+  };
+
   if (loading) {
     return <div className="loading">Loading teams...</div>;
   }
@@ -247,9 +304,20 @@ export default function Teams() {
         <h1>Teams</h1>
         <div className="header-actions">
           {user && (
-            <button onClick={handleEditProfile} className="edit-profile-button">
-              Edit Profile
-            </button>
+            <>
+              <button 
+                onClick={toggleMyTeams} 
+                className={`my-teams-button ${showMyTeamsOnly ? 'active' : ''}`}
+              >
+                {showMyTeamsOnly ? 'All Teams' : 'My Teams'}
+              </button>
+              <button onClick={handleEditProfile} className="edit-profile-button">
+                Edit Profile
+              </button>
+              <button onClick={handleLogout} className="logout-button">
+                Logout
+              </button>
+            </>
           )}
           <input
             type="text"
@@ -265,37 +333,43 @@ export default function Teams() {
       </div>
 
       <div className="teams-table-container">
-        <table className="teams-table">
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr
-                key={row.id}
-                onClick={() => handleTeamClick(row.original.id)}
-                className="team-row"
-              >
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {showMyTeamsOnly && filteredTeams.length === 0 ? (
+          <div className="no-teams-message">
+            You are not a member of any teams yet. Join a team or create your own!
+          </div>
+        ) : (
+          <table className="teams-table">
+            <thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th key={header.id}>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map(row => (
+                <tr
+                  key={row.id}
+                  onClick={() => handleTeamClick(row.original.id)}
+                  className="team-row"
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

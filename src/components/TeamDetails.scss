@@ -86,6 +86,171 @@
     text-align: center;
   }
 
+  .discord-section {
+    background: $card-bg;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    h3 {
+      color: $discord-blue;
+      font-size: 1.4rem;
+      margin: 0 0 1rem 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+
+      &::before {
+        content: '🎮';
+        margin-right: 0.5rem;
+        font-size: 1.6rem;
+      }
+    }
+
+    .discord-display {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+
+      .discord-link-button {
+        display: inline-block;
+        background: $discord-blue;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+
+        &:hover {
+          background: color.scale($discord-blue, $lightness: -10%);
+          transform: translateY(-2px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+
+      .edit-discord-button {
+        background: transparent;
+        color: $discord-blue;
+        border: 1px solid $discord-blue;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+
+        &:hover {
+          background: rgba($discord-blue, 0.1);
+        }
+      }
+
+      .add-discord-button {
+        display: inline-block;
+        background: $discord-blue-20;
+        color: $discord-blue;
+        padding: 0.75rem 2rem;
+        border-radius: 4px;
+        border: 1px solid $discord-blue;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+
+        &:hover {
+          background: $discord-blue-30;
+          transform: translateY(-2px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+
+      .no-discord {
+        color: $text-color-muted;
+        font-style: italic;
+      }
+    }
+
+    .discord-edit {
+      .discord-input {
+        width: 100%;
+        padding: 0.75rem;
+        background: $input-bg;
+        border: 1px solid $discord-blue-30;
+        border-radius: 4px;
+        color: $text-color;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+
+        &:focus {
+          outline: none;
+          border-color: $discord-blue;
+          box-shadow: 0 0 5px rgba($discord-blue, 0.2);
+        }
+
+        &::placeholder {
+          color: $text-color-muted;
+        }
+      }
+
+      .discord-error {
+        color: $error-color;
+        background: rgba($error-color, 0.1);
+        padding: 0.75rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .discord-actions {
+        display: flex;
+        gap: 1rem;
+
+        .save-discord-button {
+          background: $discord-blue;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.2s;
+
+          &:hover {
+            background: color.scale($discord-blue, $lightness: -10%);
+            transform: translateY(-2px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+
+        .cancel-discord-button {
+          background: transparent;
+          color: $text-color-muted;
+          border: 1px solid $border-color;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.2s;
+
+          &:hover {
+            background: rgba($text-color-muted, 0.1);
+          }
+        }
+      }
+    }
+  }
+
   .roles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -109,12 +274,31 @@
         margin: 0 0 1rem 0;
         text-transform: uppercase;
         letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+
+        .role-icon {
+          margin-right: 0.5rem;
+          font-size: 1.3rem;
+        }
       }
 
       .player-info {
         .player-name {
           color: $lol-gold;
           font-weight: bold;
+        }
+
+        .your-role-badge {
+          display: inline-block;
+          background: $discord-blue;
+          color: white;
+          font-size: 0.7rem;
+          font-weight: 600;
+          padding: 0.2rem 0.5rem;
+          border-radius: 20px;
+          margin-left: 0.5rem;
+          text-transform: uppercase;
         }
       }
 
@@ -126,7 +310,7 @@
         color: $text-color-muted;
         font-style: italic;
 
-        .join-button {
+        .join-button, .select-button {
           background: $lol-gold;
           color: $dark-bg;
           border: none;
@@ -135,6 +319,8 @@
           cursor: pointer;
           font-weight: bold;
           transition: all 0.2s;
+          width: 100%;
+          max-width: 120px;
 
           &:hover:not(:disabled) {
             background: color.scale($lol-gold, $lightness: 10%);
@@ -147,17 +333,48 @@
             opacity: 0.7;
           }
         }
+
+        .select-button {
+          background: $discord-blue;
+          
+          &:hover:not(:disabled) {
+            background: color.scale($discord-blue, $lightness: -10%);
+          }
+        }
+      }
+    }
+  }
+
+  .delete-team-container {
+    margin-top: 3rem;
+    
+    .delete-toggle-button {
+      width: 100%;
+      background: rgba($error-color, 0.1);
+      color: $error-color;
+      border: 1px solid rgba($error-color, 0.3);
+      padding: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: rgba($error-color, 0.2);
       }
     }
   }
 
   .delete-team-section {
     background: $card-bg;
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     padding: 2rem;
-    margin-top: 2rem;
+    margin-top: -8px;
     border: 1px solid rgba($error-color, 0.3);
-    box-shadow: 0 0 10px rgba($error-color, 0.1);
+    border-top: none;
+    box-shadow: 0 4px 10px rgba($error-color, 0.1);
+    animation: slideDown 0.3s ease-out;
 
     h3 {
       color: $error-color;
@@ -254,5 +471,16 @@
     .back-button {
       margin-top: 1rem;
     }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 } 

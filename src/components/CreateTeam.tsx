@@ -68,11 +68,7 @@ export default function CreateTeam() {
         roles: roles,
         createdAt: new Date(),
         discordLink: discordLink || null,
-        members: [{
-          userId: user.uid,
-          role: 'Creator',
-          joinedAt: new Date()
-        }]
+        members: [] // Start with empty members array - creator is tracked separately by creatorId
       });
 
       // Create or update user document

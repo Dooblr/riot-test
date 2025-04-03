@@ -86,6 +86,53 @@
           transform: translateY(0);
         }
       }
+
+      .logout-button {
+        padding: $spacing-sm $spacing-lg;
+        background-color: $error-color;
+        color: white;
+        border: none;
+        border-radius: $border-radius;
+        font-size: $font-size-sm;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all $transition-speed ease;
+
+        &:hover {
+          background-color: color.scale($error-color, $lightness: -10%);
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+
+      .my-teams-button {
+        padding: $spacing-sm $spacing-lg;
+        background-color: $lol-dark;
+        color: $lol-gold;
+        border: 1px solid $lol-gold;
+        border-radius: $border-radius;
+        font-size: $font-size-sm;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all $transition-speed ease;
+
+        &:hover {
+          background-color: $lol-gold-10;
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        &.active {
+          background-color: $lol-gold;
+          color: $lol-dark;
+        }
+      }
     }
   }
 
@@ -94,6 +141,14 @@
     border-radius: $border-radius * 2;
     box-shadow: $box-shadow;
     overflow: hidden;
+
+    .no-teams-message {
+      padding: $spacing-xl;
+      text-align: center;
+      color: $lol-gold;
+      font-size: $font-size-lg;
+      font-style: italic;
+    }
 
     .teams-table {
       width: 100%;
