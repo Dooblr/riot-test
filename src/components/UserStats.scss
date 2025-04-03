@@ -1,0 +1,209 @@
+.user-stats {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .summoner-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    .profile-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 2px solid #c9aa71;
+    }
+
+    .summoner-info {
+      h2 {
+        margin: 0;
+        color: #c9aa71;
+        font-size: 2rem;
+      }
+
+      p {
+        margin: 0.5rem 0 0;
+        color: #a09b8c;
+      }
+    }
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+
+      h3 {
+        margin: 0 0 1rem;
+        color: #a09b8c;
+        font-size: 1rem;
+      }
+
+      .stat-value {
+        color: #c9aa71;
+        font-size: 1.5rem;
+        font-weight: bold;
+
+        .stat-detail {
+          display: block;
+          font-size: 0.9rem;
+          color: #a09b8c;
+          margin-top: 0.5rem;
+        }
+      }
+    }
+  }
+
+  .favorite-champions {
+    margin-bottom: 2rem;
+
+    h3 {
+      color: #c9aa71;
+      margin-bottom: 1rem;
+    }
+
+    .champion-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+
+      .champion-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .champion-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+        }
+
+        .champion-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .champion-name {
+            color: #c9aa71;
+            font-weight: bold;
+          }
+
+          .champion-stats {
+            color: #a09b8c;
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+
+  .recent-matches {
+    h3 {
+      color: #c9aa71;
+      margin-bottom: 1rem;
+    }
+
+    .match-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .match-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        &.win {
+          border-left: 4px solid #1a9f1a;
+        }
+
+        &.loss {
+          border-left: 4px solid #c91a1a;
+        }
+
+        .match-champion {
+          img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+          }
+        }
+
+        .match-details {
+          flex: 1;
+
+          .match-kda {
+            color: #c9aa71;
+            font-weight: bold;
+          }
+
+          .match-cs {
+            color: #a09b8c;
+            font-size: 0.9rem;
+          }
+        }
+
+        .match-result {
+          font-weight: bold;
+
+          .win & {
+            color: #1a9f1a;
+          }
+
+          .loss & {
+            color: #c91a1a;
+          }
+        }
+      }
+    }
+  }
+
+  .loading, .error {
+    text-align: center;
+    padding: 2rem;
+    color: #c9aa71;
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-stats {
+    padding: 1rem;
+
+    .summoner-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .champion-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+} 

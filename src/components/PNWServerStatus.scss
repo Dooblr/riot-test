@@ -1,0 +1,334 @@
+@import '../variables.scss';
+
+.server-status {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  h2 {
+    color: $lol-gold;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.server-dashboard {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  background: rgba(13, 27, 42, 0.7);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.server-list {
+  background: rgba(10, 20, 30, 0.9);
+  padding: 15px;
+  border-right: 1px solid rgba(208, 168, 92, 0.3);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.server-item {
+  background: rgba(30, 35, 40, 0.6);
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  &:hover {
+    background: rgba(40, 45, 50, 0.8);
+  }
+  
+  &.selected {
+    background: rgba(45, 55, 65, 0.9);
+    border-left: 3px solid $lol-gold;
+  }
+}
+
+.server-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.server-name {
+  font-weight: 600;
+  color: $lol-light;
+}
+
+.server-status-indicator {
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+  
+  &.status-online {
+    background-color: rgba($lol-success, 0.2);
+    color: $lol-success;
+  }
+  
+  &.status-offline {
+    background-color: rgba($lol-error, 0.2);
+    color: $lol-error;
+  }
+  
+  &.status-unstable {
+    background-color: rgba($lol-warning, 0.2);
+    color: $lol-warning;
+  }
+}
+
+.server-ping {
+  margin-top: 5px;
+  font-size: 0.9rem;
+}
+
+.ping-value {
+  &.ping-good {
+    color: $lol-success;
+  }
+  
+  &.ping-ok {
+    color: $lol-warning;
+  }
+  
+  &.ping-bad {
+    color: $lol-error;
+  }
+}
+
+.server-incidents-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: $lol-error;
+  color: white;
+  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.server-details {
+  padding: 20px;
+  background: rgba(20, 30, 40, 0.5);
+}
+
+.server-detail-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  
+  h3 {
+    color: $lol-gold;
+    margin: 0;
+    margin-right: 15px;
+    font-size: 1.5rem;
+  }
+}
+
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+  
+  &.status-online {
+    background-color: rgba($lol-success, 0.15);
+    color: $lol-success;
+    border: 1px solid rgba($lol-success, 0.3);
+  }
+  
+  &.status-offline {
+    background-color: rgba($lol-error, 0.15);
+    color: $lol-error;
+    border: 1px solid rgba($lol-error, 0.3);
+  }
+  
+  &.status-unstable {
+    background-color: rgba($lol-warning, 0.15);
+    color: $lol-warning;
+    border: 1px solid rgba($lol-warning, 0.3);
+  }
+}
+
+.server-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.metric {
+  background: rgba(10, 15, 20, 0.5);
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  
+  .metric-name {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba($lol-light, 0.7);
+    margin-bottom: 8px;
+  }
+  
+  .metric-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: $lol-light;
+    
+    &.ping-good {
+      color: $lol-success;
+    }
+    
+    &.ping-ok {
+      color: $lol-warning;
+    }
+    
+    &.ping-bad {
+      color: $lol-error;
+    }
+  }
+}
+
+.incidents-container {
+  h4 {
+    color: $lol-light;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba($lol-gold, 0.3);
+    padding-bottom: 10px;
+  }
+  
+  .no-incidents {
+    color: rgba($lol-light, 0.7);
+    font-style: italic;
+    text-align: center;
+    padding: 30px 0;
+  }
+}
+
+.incidents-list {
+  display: grid;
+  gap: 15px;
+}
+
+.incident-item {
+  background: rgba(10, 15, 20, 0.6);
+  border-radius: 6px;
+  padding: 15px;
+  border-left: 3px solid;
+  
+  &.severity-warning {
+    border-left-color: $lol-warning;
+  }
+  
+  &.severity-critical {
+    border-left-color: $lol-error;
+  }
+  
+  &.severity-info {
+    border-left-color: #3498db;
+  }
+}
+
+.incident-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  
+  h5 {
+    margin: 0;
+    color: $lol-light;
+    font-size: 1.1rem;
+  }
+}
+
+.incident-severity {
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+  
+  &.severity-warning {
+    background-color: rgba($lol-warning, 0.15);
+    color: $lol-warning;
+  }
+  
+  &.severity-critical {
+    background-color: rgba($lol-error, 0.15);
+    color: $lol-error;
+  }
+  
+  &.severity-info {
+    background-color: rgba(#3498db, 0.15);
+    color: #3498db;
+  }
+}
+
+.incident-description {
+  color: rgba($lol-light, 0.9);
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.incident-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: rgba($lol-light, 0.6);
+  margin-bottom: 10px;
+}
+
+.incident-platforms {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.platform-tag {
+  background: rgba($lol-gold, 0.15);
+  color: $lol-gold;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+
+.select-server-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  
+  p {
+    color: rgba($lol-light, 0.6);
+    font-style: italic;
+  }
+}
+
+@media (max-width: 768px) {
+  .server-dashboard {
+    grid-template-columns: 1fr;
+  }
+  
+  .server-list {
+    border-right: none;
+    border-bottom: 1px solid rgba(208, 168, 92, 0.3);
+    max-height: 300px;
+  }
+  
+  .server-metrics {
+    grid-template-columns: 1fr;
+  }
+} 

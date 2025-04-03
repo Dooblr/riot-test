@@ -1,0 +1,76 @@
+.champion-rotation {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  h2 {
+    color: #d0a85c;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.champion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  justify-content: center;
+}
+
+.champion-card {
+  background: rgba(30, 35, 40, 0.85);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  }
+  
+  h3 {
+    color: #ffffff;
+    margin: 10px 0 5px;
+    font-size: 1.2rem;
+  }
+  
+  .champion-title {
+    color: #a09b8c;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin: 0;
+    height: 40px;
+  }
+}
+
+.champion-image {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+}
+
+.loading {
+  color: #d0a85c;
+}
+
+.error {
+  color: #e74c3c;
+} 
