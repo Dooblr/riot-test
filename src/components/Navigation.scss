@@ -54,6 +54,35 @@
       }
     }
   }
+  
+  .profile-link {
+    margin-right: 10px;
+    
+    .profile-nav-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background-color: $lol-gold;
+      color: $lol-blue;
+      border-radius: 50%;
+      font-weight: bold;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 10px rgba($lol-gold, 0.5);
+      }
+      
+      &.active {
+        border-color: $lol-light;
+        border-bottom: 2px solid $lol-light;
+      }
+    }
+  }
 }
 
 @media (max-width: 768px) {
@@ -78,6 +107,16 @@
     a {
       font-size: 0.9rem;
       padding: 6px 10px;
+    }
+    
+    .profile-link {
+      margin-right: 5px;
+      
+      .profile-nav-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+      }
     }
   }
 } 

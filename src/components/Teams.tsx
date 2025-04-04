@@ -347,18 +347,6 @@ export default function Teams() {
       <div className="teams-header">
         <div className="header-left">
           <h1>Teams</h1>
-          {user && (
-            <motion.button
-              onClick={handleEditProfile}
-              className="profile-button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <span className="profile-icon">
-                {profile?.summonerName?.charAt(0).toUpperCase() || 'P'}
-              </span>
-            </motion.button>
-          )}
         </div>
 
         {/* Mobile menu button */}

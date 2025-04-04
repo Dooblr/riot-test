@@ -1,7 +1,38 @@
 import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "./Navigation.scss";
 
 function Navigation() {
+  const [userInitial, setUserInitial] = useState<string>('');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setIsLoggedIn(true);
+        // Get user's summoner name initial for the profile icon
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const initial = userData.summonerName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U';
+            setUserInitial(initial);
+          }
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+          setUserInitial('U');
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUserInitial('');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <nav className="navigation">
       <div className="nav-container">
@@ -9,6 +40,17 @@ function Navigation() {
           <img src="/riot-logo.png" alt="Riot Games Logo" className="logo" />
         </div> */}
         <ul className="nav-links">
+          {isLoggedIn && (
+            <li className="profile-link">
+              <NavLink
+                to="/teams/profile"
+                className={({ isActive }) => `profile-nav-icon ${isActive ? "active" : ""}`}
+                title="Your Profile"
+              >
+                {userInitial}
+              </NavLink>
+            </li>
+          )}
           <li>
             <NavLink
               to="/teams"
@@ -19,7 +61,7 @@ function Navigation() {
           </li>
           <li>
             <NavLink
-              to="/"
+              to="/rotation"
               className={({ isActive }) => (isActive ? "active" : "")}
             >
               Free Champion Rotation

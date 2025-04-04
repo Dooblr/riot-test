@@ -100,17 +100,10 @@ function App() {
         </header> */}
         <main>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Navigate to="/teams" />} />
+            <Route path="/rotation" element={<HomePage />} />
             <Route path="/server-status" element={<ServerStatusPage />} />
             <Route path="/player-stats" element={<UserStats />} />
-            <Route
-              path="/"
-              element={
-                <RequireAuth>
-                  <Navigate to="/teams" />
-                </RequireAuth>
-              }
-            />
             <Route path="/teams/login" element={<TeamsLogin />} />
             <Route path="/summoner-verification" element={<SummonerVerification />} />
             <Route
