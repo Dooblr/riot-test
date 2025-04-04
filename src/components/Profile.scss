@@ -4,20 +4,30 @@
 .profile {
   display: flex;
   justify-content: center;
-  padding: 2rem;
+  padding: 40px 20px;
+  min-height: calc(100vh - 100px);
+  background-color: $lol-dark;
   
   .profile-container {
-    background-color: $card-bg;
-    border-radius: 8px;
-    padding: 2rem;
     width: 100%;
     max-width: 800px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: $card-bg;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     
     h1 {
       color: $lol-gold;
-      margin-bottom: 2rem;
+      margin-bottom: 30px;
       text-align: center;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+    
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
     
     .form-group {
@@ -55,23 +65,36 @@
         color: $text-color-muted;
       }
     }
-
+    
+    // Champion selection styles
     .champion-selection {
-      margin-top: 2rem;
-      border-top: 1px solid $border-color;
-      padding-top: 1.5rem;
-
+      margin-bottom: 2rem;
+      
       .champion-filter {
         display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        gap: 10px;
+        margin-bottom: 15px;
+        
+        @media (max-width: $breakpoint-md) {
+          flex-direction: column;
+        }
         
         .champion-search {
           flex: 1;
+          padding: 0.75rem;
+          border: 1px solid $border-color;
+          border-radius: 4px;
+          background-color: $input-bg;
+          color: $text-color;
+          
+          &:focus {
+            outline: none;
+            border-color: $lol-gold;
+          }
         }
         
         .role-filter {
-          min-width: 150px;
+          min-width: 120px;
           
           .role-select {
             width: 100%;
@@ -80,80 +103,87 @@
             border-radius: 4px;
             background-color: $input-bg;
             color: $text-color;
-            font-size: 1rem;
             cursor: pointer;
             
             &:focus {
               outline: none;
               border-color: $lol-gold;
             }
-            
-            option {
-              background-color: $lol-dark;
-              color: $text-color;
-            }
           }
         }
       }
       
-      .champions-loading {
-        text-align: center;
-        color: $lol-gold;
-        padding: 2rem;
-        font-style: italic;
-      }
-      
       .champions-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
         max-height: 400px;
         overflow-y: auto;
-        padding: 0.5rem;
-        background-color: rgba($lol-dark, 0.5);
+        padding: 10px;
+        background-color: rgba($lol-dark, 0.3);
         border-radius: 4px;
+        border: 1px solid $border-color;
+        
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: rgba($lol-dark, 0.5);
+          border-radius: 4px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: $lol-gold-30;
+          border-radius: 4px;
+        }
+        
+        &::-webkit-scrollbar-thumb:hover {
+          background: $lol-gold-50;
+        }
         
         .champion-item {
           position: relative;
-          background-color: $lol-dark;
           border-radius: 4px;
           overflow: hidden;
+          background-color: rgba($lol-dark, 0.5);
+          border: 1px solid $border-color;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
           cursor: pointer;
-          transition: all 0.2s ease;
-          border: 2px solid transparent;
           
           &:hover {
-            transform: translateY(-2px);
+            transform: translateY(-4px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1;
           }
           
           &.favorite {
-            border-color: $lol-gold;
+            border: 2px solid $lol-gold;
+            box-shadow: 0 0 8px rgba($lol-gold, 0.5);
           }
           
           .champion-image {
             width: 100%;
-            aspect-ratio: 1;
+            height: 90px;
             object-fit: cover;
           }
           
           .champion-name {
-            padding: 0.5rem;
-            text-align: center;
-            font-size: 0.75rem;
+            padding: 5px;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: $lol-gold;
+            color: $text-color;
+            text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
           }
           
           .champion-roles {
-            padding: 0 0.5rem 0.5rem;
-            text-align: center;
-            font-size: 0.65rem;
+            padding: 0 5px 5px;
+            font-size: 0.7rem;
             color: $text-color-muted;
+            text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -178,53 +208,59 @@
       }
       
       .selected-champions {
-        background-color: rgba($lol-dark, 0.3);
+        margin-top: 20px;
+        padding: 15px;
+        background-color: rgba($lol-dark, 0.2);
         border-radius: 4px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
+        border: 1px solid $border-color;
         
         h3 {
           color: $lol-gold;
-          margin-top: 0;
-          margin-bottom: 1rem;
           font-size: 1.1rem;
+          margin-bottom: 15px;
+          font-weight: 600;
         }
         
         .no-champions {
           text-align: center;
           color: $text-color-muted;
           font-style: italic;
-          padding: 1rem;
+          padding: 10px;
         }
         
         .selected-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 10px;
+          
+          @media (max-width: $breakpoint-md) {
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+          }
           
           .selected-champion {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            background-color: $lol-dark;
-            border-radius: 20px;
-            padding: 0.3rem 0.3rem 0.3rem 0.3rem;
-            max-width: 100%;
+            gap: 8px;
+            padding: 8px;
+            background-color: rgba($lol-dark, 0.4);
+            border-radius: 4px;
+            border: 1px solid $border-color;
             
             .champion-thumbnail {
-              width: 24px;
-              height: 24px;
+              width: 30px;
+              height: 30px;
               border-radius: 50%;
               object-fit: cover;
+              border: 1px solid $lol-gold;
             }
             
             span {
-              font-size: 0.8rem;
-              color: $lol-gold;
+              flex: 1;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
-              max-width: 100px;
+              color: $text-color;
+              font-size: 0.9rem;
             }
             
             .remove-champion {
@@ -234,8 +270,11 @@
               font-size: 1.2rem;
               line-height: 1;
               cursor: pointer;
-              padding: 0 0.3rem;
-              margin-left: auto;
+              padding: 0;
+              margin: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
               
               &:hover {
                 color: color.scale($error-color, $lightness: 20%);
@@ -244,70 +283,75 @@
           }
         }
       }
-    }
-    
-    .error-message,
-    .success-message {
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      border-radius: 4px;
-      text-align: center;
+      
+      .champions-loading {
+        text-align: center;
+        padding: 30px;
+        color: $text-color-muted;
+        font-style: italic;
+      }
     }
     
     .error-message {
       background-color: rgba($error-color, 0.1);
       color: $error-color;
-      border: 1px solid rgba($error-color, 0.3);
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      text-align: center;
     }
     
     .success-message {
       background-color: rgba($success-color, 0.1);
       color: $success-color;
-      border: 1px solid rgba($success-color, 0.3);
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      text-align: center;
     }
     
     .form-actions {
       display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
+      justify-content: space-between;
       margin-top: 2rem;
       
       button {
         padding: 0.75rem 1.5rem;
         border-radius: 4px;
+        font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      
-      .save-button {
-        background-color: $lol-gold;
-        color: $lol-dark;
-        border: none;
-        
-        &:hover:not(:disabled) {
-          background-color: color.scale($lol-gold, $lightness: -10%);
-          transform: translateY(-2px);
-        }
-        
-        &:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
+        transition: background-color 0.2s;
       }
       
       .cancel-button {
         background-color: transparent;
-        color: $text-color-muted;
+        color: $text-color;
         border: 1px solid $border-color;
         
         &:hover {
-          background-color: rgba($text-color-muted, 0.1);
-          transform: translateY(-2px);
+          background-color: rgba($text-color, 0.1);
+        }
+      }
+      
+      .save-button {
+        background-color: $discord-blue;
+        color: white;
+        border: none;
+        
+        &:hover {
+          background-color: color.scale($discord-blue, $lightness: -10%);
+        }
+        
+        &:disabled {
+          background-color: $text-color-muted;
+          cursor: not-allowed;
         }
       }
     }
-    
+
     .logout-section {
       margin-top: 2rem;
       padding-top: 1.5rem;
@@ -338,6 +382,118 @@
     }
   }
 
+  // Rank information section styles
+  .rank-section {
+    margin-bottom: 30px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 20px;
+    
+    h2 {
+      color: $lol-gold;
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    
+    .rank-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .rank-card {
+      background-color: rgba(20, 20, 30, 0.7);
+      border: 1px solid rgba(208, 168, 92, 0.3);
+      border-radius: 6px;
+      padding: 15px;
+      flex: 1 1 300px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+      
+      .rank-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 12px;
+        
+        .tier-icon {
+          width: 60px;
+          height: 60px;
+          object-fit: contain;
+        }
+        
+        .rank-title {
+          flex: 1;
+          
+          h3 {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+          }
+          
+          .rank-tier {
+            color: $lol-gold;
+            font-weight: 600;
+            font-size: 1.2rem;
+          }
+        }
+      }
+      
+      .rank-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 10px;
+        
+        .win-loss {
+          font-size: 1rem;
+          
+          .wins {
+            color: #52b788; // green for wins
+            font-weight: 600;
+            margin-right: 3px;
+          }
+          
+          .losses {
+            color: #e5383b; // red for losses
+            font-weight: 600;
+            margin-left: 3px;
+          }
+        }
+        
+        .win-rate {
+          color: white;
+          font-size: 0.9rem;
+          background-color: rgba(0, 0, 0, 0.2);
+          padding: 5px 10px;
+          border-radius: 15px;
+        }
+      }
+    }
+    
+    .no-rank {
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      color: #aaa;
+      font-style: italic;
+    }
+    
+    .loading-rank {
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      color: #aaa;
+    }
+  }
+
   .loading {
     text-align: center;
     color: #c89b3c;
@@ -353,30 +509,5 @@
     background-color: rgba(255, 68, 68, 0.1);
     border-radius: 8px;
     border: 1px solid #ff4444;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 1rem;
-    
-    .profile-container {
-      padding: 1.5rem;
-      
-      .champion-filter {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      
-      .champions-grid {
-        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-      }
-      
-      .form-actions {
-        flex-direction: column-reverse;
-        
-        button {
-          width: 100%;
-        }
-      }
-    }
   }
 } 

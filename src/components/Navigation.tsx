@@ -56,7 +56,7 @@ function Navigation() {
               to="/teams"
               className={({ isActive }) => (isActive ? "active" : "")}
             >
-              Team Finder
+              Teams
             </NavLink>
           </li>
           <li>
@@ -64,7 +64,7 @@ function Navigation() {
               to="/rotation"
               className={({ isActive }) => (isActive ? "active" : "")}
             >
-              Free Champion Rotation
+              Free Champions
             </NavLink>
           </li>
           {/* <li>

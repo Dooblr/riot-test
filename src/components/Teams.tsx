@@ -35,6 +35,10 @@ interface Team {
   }[];
   discordLink?: string;
   createdAt: Date;
+  passwordProtected?: boolean;
+  password?: string;
+  discordAccess?: string[];
+  discordRequests?: string[];
 }
 
 interface UserProfile {
@@ -86,21 +90,14 @@ const columns = [
       return memberIds.size;
     },
   }),
-  columnHelper.accessor("discordLink", {
-    header: "Discord",
+  columnHelper.accessor("passwordProtected", {
+    header: "Protected",
     cell: (info) => {
-      const link = info.getValue();
-      if (!link) return "Not set";
+      const isProtected = info.getValue();
       return (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="discord-link"
-          onClick={(e) => e.stopPropagation()}
-        >
-          Join Discord
-        </a>
+        <span className={`protection-status ${isProtected ? 'protected' : 'open'}`}>
+          {isProtected ? '🔒 Password' : '🔓 Open'}
+        </span>
       );
     },
   }),
@@ -182,32 +179,38 @@ export default function Teams() {
 
   useEffect(() => {
     const fetchTeams = async () => {
-      if (!user) return;
-
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUserTeams(userDoc.data().teams || []);
-        }
-
         const teamsQuery = query(collection(db, "teams"));
         const teamsSnapshot = await getDocs(teamsQuery);
-
-        // Create properly typed teams array
         const teamsData: Team[] = [];
+        const userIds = new Set<string>();
 
-        teamsSnapshot.docs.forEach((doc) => {
+        teamsSnapshot.forEach((doc) => {
           const data = doc.data();
+          
+          // Collect all unique user IDs for fetching profiles
+          userIds.add(data.creatorId);
+          
+          if (data.roles) {
+            data.roles.forEach((role: any) => {
+              if (role.userId) userIds.add(role.userId);
+            });
+          }
+          
+          if (data.members) {
+            data.members.forEach((member: any) => {
+              userIds.add(member.userId);
+            });
+          }
 
-          // Convert any Firestore timestamps to JavaScript Date objects
-          const members = data.members || [];
-          const processedMembers = members.map((member: any) => ({
-            userId: member.userId,
-            role: member.role,
-            joinedAt: member.joinedAt?.toDate
-              ? member.joinedAt.toDate()
-              : new Date(member.joinedAt),
-          }));
+          // Convert Firestore timestamps to Date objects
+          const createdAt = data.createdAt?.toDate?.() || new Date();
+          
+          // Process member timestamps if they exist
+          const members = data.members ? data.members.map((member: any) => ({
+            ...member,
+            joinedAt: member.joinedAt?.toDate?.() || new Date()
+          })) : [];
 
           teamsData.push({
             id: doc.id,
@@ -215,24 +218,33 @@ export default function Teams() {
             creatorId: data.creatorId,
             summonerName: data.summonerName,
             roles: data.roles || [],
-            members: processedMembers,
+            members: members,
             discordLink: data.discordLink,
-            createdAt: data.createdAt?.toDate
-              ? data.createdAt.toDate()
-              : new Date(data.createdAt),
+            createdAt,
+            passwordProtected: data.passwordProtected,
+            password: data.password,
+            discordAccess: data.discordAccess || [],
+            discordRequests: data.discordRequests || []
           });
         });
+
+        if (user && profile) {
+          // Filter user's teams
+          const userTeamsData = profile.teams || [];
+          const typedUserTeams: UserTeam[] = Array.isArray(userTeamsData) ? 
+            userTeamsData.map((team: any) => ({
+              teamId: team.teamId || team,
+              role: team.role || 'Member',
+              joinedAt: team.joinedAt ? team.joinedAt : new Date()
+            })) : [];
+          setUserTeams(typedUserTeams);
+        }
 
         setTeams(teamsData);
 
-        const userIds = new Set<string>();
-        teamsData.forEach((team) => {
-          team.roles.forEach((role) => {
-            if (role.userId) userIds.add(role.userId);
-          });
-        });
-
+        // Fetch user profiles for role assignments
         const userProfiles: Record<string, RoleUser> = {};
+        
         for (const userId of userIds) {
           const userDoc = await getDoc(doc(db, "users", userId));
           if (userDoc.exists()) {
@@ -357,82 +369,85 @@ export default function Teams() {
     return <CreateTeam />;
   }
 
+  if (!user) {
+    return (
+      <div className="teams">
+        <div className="teams-login-container">
+          <h1>Teams</h1>
+          <p>You need to be logged in to view teams.</p>
+          <button
+            onClick={() => navigate('/teams/login')}
+            className="login-button"
+          >
+            Login / Register
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="teams">
       <div className="teams-header">
         <div className="header-left">
           <h1>Teams</h1>
+          {/* <button onClick={handleEditProfile} className="profile-button">
+            <span className="profile-icon">{profile?.summonerName?.[0].toUpperCase() || 'U'}</span>
+          </button> */}
         </div>
-
-        {/* Mobile menu button */}
-        <button
-          className={`mobile-menu-toggle ${mobileMenuOpen ? "active" : ""}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-        >
-          <span className="hamburger-icon"></span>
-        </button>
-
-        <button onClick={handleCreateTeam} className="create-team-button">
-          Create Team
-        </button>
+        <div className="header-right">
+          <button onClick={handleCreateTeam} className="create-team-button">
+            Create Team
+          </button>
+          <button onClick={toggleMobileMenu} className="mobile-menu-toggle">
+            <div className={`hamburger ${mobileMenuOpen ? 'active' : ''}`}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+        </div>
       </div>
 
-      <div className={`teams-filters ${mobileMenuOpen ? "mobile-open" : ""}`}>
-        {mobileMenuOpen && (
-          <div className="mobile-buttons">
-            <button onClick={handleCreateTeam} className="create-team-button">
-              Create Team
-            </button>
-          </div>
-        )}
-        
-        <div className="filters-row">
-          {user && (
-            <div className="role-filter-container">
-              <span className="role-filter-label">Filter by needed roles:</span>
-              <motion.div 
-                className="role-filter-buttons"
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-              >
-                <AnimatePresence>
-                  {availableRoles.map(role => (
-                    <motion.button
-                      key={role}
-                      onClick={() => handleRoleFilter(role)}
-                      className={`role-filter-button ${
-                        roleFilter.includes(role) ? "active" : ""
-                      }`}
-                      variants={roleButtonVariants}
-                      initial="initial"
-                      animate="animate"
-                      whileHover="hover"
-                      whileTap="tap"
-                      exit="exit"
-                    >
-                      {role}
-                    </motion.button>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
-            </div>
-          )}
-
-          <div className="search-container">
-            <motion.input
-              type="text"
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              placeholder="Search teams..."
-              className="search-input"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
+      <div className={`teams-filters ${mobileMenuOpen ? 'mobile-visible' : ''}`}>
+        <div className="search-container">
+          <input
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search teams..."
+            className="search-input"
+          />
         </div>
+        
+        <div className="role-filters">
+          <div className="role-filter-label">Filter by open roles:</div>
+          <motion.div 
+            className="role-filter-buttons"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
+            {availableRoles.map((role) => (
+              <motion.button
+                key={role}
+                onClick={() => handleRoleFilter(role)}
+                className={`role-filter-button ${roleFilter.includes(role) ? 'active' : ''}`}
+                variants={roleButtonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <span className="role-icon">{roleIcons[role] || '👤'}</span> 
+                {role}
+              </motion.button>
+            ))}
+          </motion.div>
+        </div>
+        
+        {isFilterActive && (
+          <button onClick={clearAllFilters} className="clear-filters-button">
+            Clear All Filters
+          </button>
+        )}
       </div>
 
       <motion.div 
@@ -490,14 +505,13 @@ export default function Teams() {
                       {row.getVisibleCells().map((cell) => {
                         // Get column header for data-label attribute
                         const header = cell.column.columnDef.header as string;
-                        const isDiscordColumn = cell.column.id === "discordLink";
                         const isDateColumn = cell.column.id === "createdAt";
                         
                         return (
                           <td 
                             key={cell.id} 
                             data-label={header}
-                            className={`${isDiscordColumn || isDateColumn ? 'hide-mobile' : ''}`}
+                            className={`${isDateColumn ? 'hide-mobile' : ''}`}
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -529,6 +543,12 @@ export default function Teams() {
                         <div className="team-date">{formatDate(team.createdAt)}</div>
                       </div>
                       <div className="team-creator">Created by: {team.summonerName}</div>
+                      <div className="team-password-status">
+                        {team.passwordProtected ? 
+                          <span className="protected">🔒 Password Protected</span> : 
+                          <span className="open">🔓 Open to Join</span>
+                        }
+                      </div>
                       <div className="team-roles">
                         {team.roles.map((role, index) => (
                           <div 

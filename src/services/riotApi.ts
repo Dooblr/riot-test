@@ -159,7 +159,7 @@ export const fetchPNWServerStatus = async (): Promise<ServerStatus[]> => {
         name: 'PNW Game Server',
         status: 'online',
         ping: Math.floor(Math.random() * 30) + 15, // Random ping between 15-45ms
-        incidents: platformData.incidents.filter((_, i) => i < 2).map((incident, id) => ({
+        incidents: platformData.incidents.filter((_: any, i: number) => i < 2).map((incident: any, id: number) => ({
           id,
           title: `${incident.titles?.[0]?.content || 'Incident'}`,
           severity: ['warning', 'critical', 'info'][Math.floor(Math.random() * 3)] as 'warning' | 'critical' | 'info',
@@ -557,4 +557,37 @@ export async function fetchSummonerSuggestions(partialName: string): Promise<Sum
     console.error('Error fetching summoner suggestions:', error);
     return [];
   }
-} 
+}
+
+export interface RankInfo {
+  leagueId: string;
+  queueType: string;
+  tier: string;
+  rank: string;
+  summonerId: string;
+  summonerName: string;
+  leaguePoints: number;
+  wins: number;
+  losses: number;
+  veteran: boolean;
+  inactive: boolean;
+  freshBlood: boolean;
+  hotStreak: boolean;
+}
+
+export const fetchSummonerRank = async (summonerId: string): Promise<RankInfo[]> => {
+  try {
+    const response = await fetch(
+      `https://${REGION}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}?api_key=${API_KEY}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch summoner rank: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching summoner rank:', error);
+    return [];
+  }
+}; 

@@ -25,6 +25,8 @@ interface Team {
   discordLink?: string;
   discordAccess?: string[];
   discordRequests?: string[];
+  passwordProtected?: boolean;
+  password?: string;
 }
 
 interface RoleUser {
@@ -93,6 +95,10 @@ export default function TeamDetails() {
   const [requestingDiscord, setRequestingDiscord] = useState(false);
   const [discordRequestSuccess, setDiscordRequestSuccess] = useState(false);
   const [pendingDiscordRequests, setPendingDiscordRequests] = useState<string[]>([]);
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordProtected, setPasswordProtected] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const fetchUserChampions = async (userId: string) => {
     try {
@@ -235,6 +241,13 @@ export default function TeamDetails() {
       }
     };
   }, [teamId]);
+
+  useEffect(() => {
+    if (team) {
+      setPasswordProtected(team.passwordProtected || false);
+      setPassword(team.password || '');
+    }
+  }, [team]);
 
   const getRoleUser = (userId: string | null) => {
     if (!userId) return null;
@@ -794,6 +807,39 @@ export default function TeamDetails() {
     }
   };
 
+  const handleUpdatePassword = async () => {
+    if (!teamId || !isTeamOwner()) return;
+    
+    try {
+      setPasswordError(null);
+      
+      if (passwordProtected && !password.trim()) {
+        setPasswordError("Password cannot be empty when protection is enabled");
+        return;
+      }
+      
+      const teamRef = doc(db, 'teams', teamId);
+      await updateDoc(teamRef, {
+        passwordProtected,
+        password: passwordProtected ? password : null,
+      });
+      
+      setIsEditingPassword(false);
+      setTeam(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          passwordProtected,
+          password: passwordProtected ? password : null,
+        };
+      });
+      
+    } catch (err) {
+      console.error('Error updating password:', err);
+      setPasswordError('Failed to update password settings');
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading team details...</div>;
   }
@@ -1064,6 +1110,69 @@ export default function TeamDetails() {
           </div>
         )}
       </div>
+
+      {isTeamOwner() && (
+        <div className="team-password-container">
+          <div className="section-header">
+            <h3>Password Protection</h3>
+            <button
+              onClick={() => setIsEditingPassword(!isEditingPassword)} 
+              className="edit-button"
+            >
+              {isEditingPassword ? 'Cancel' : 'Edit'}
+            </button>
+          </div>
+          
+          {isEditingPassword ? (
+            <div className="password-edit">
+              <div className="password-protection-toggle">
+                <input
+                  type="checkbox"
+                  id="passwordProtected"
+                  checked={passwordProtected}
+                  onChange={() => setPasswordProtected(!passwordProtected)}
+                />
+                <label htmlFor="passwordProtected">Password protect this team</label>
+              </div>
+              
+              {passwordProtected && (
+                <div className="password-input-section">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    className="password-input"
+                    minLength={4}
+                  />
+                  <div className="password-hint">
+                    Players will need this password to join your team
+                  </div>
+                </div>
+              )}
+              
+              {passwordError && <div className="password-error">{passwordError}</div>}
+              
+              <div className="password-actions">
+                <button 
+                  onClick={handleUpdatePassword} 
+                  className="save-password-button"
+                >
+                  Save Password Settings
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="password-status">
+              {team.passwordProtected ? (
+                <span className="protected">🔒 This team is password protected</span>
+              ) : (
+                <span className="open">🔓 This team is open to join</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="roles-grid">
         {team.roles.map((role) => {

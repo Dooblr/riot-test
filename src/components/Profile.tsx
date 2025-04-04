@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { fetchAllChampions, ChampionData } from '../services/riotApi';
+import { fetchAllChampions, ChampionData, fetchSummonerInfo, fetchSummonerRank, RankInfo } from '../services/riotApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Profile.scss';
@@ -42,6 +42,8 @@ const Profile: React.FC = () => {
   const [favoriteChampions, setFavoriteChampions] = useState<string[]>([]);
   const [loadingChampions, setLoadingChampions] = useState(false);
   const [championsError, setChampionsError] = useState<string | null>(null);
+  const [rankInfo, setRankInfo] = useState<RankInfo[]>([]);
+  const [loadingRank, setLoadingRank] = useState(false);
   const navigate = useNavigate();
   const user = auth.currentUser;
 
@@ -62,6 +64,11 @@ const Profile: React.FC = () => {
             discordLink: userData.discordLink || '',
           });
           setFavoriteChampions(userData.favoriteChampions || []);
+          
+          // Fetch rank information if summoner name is available
+          if (userData.summonerName) {
+            fetchRankData(userData.summonerName);
+          }
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -88,6 +95,26 @@ const Profile: React.FC = () => {
     fetchProfile();
     fetchChampionsData();
   }, [user]);
+
+  const fetchRankData = async (summonerName: string) => {
+    setLoadingRank(true);
+    try {
+      // First get summoner info to get the summoner ID
+      const summonerInfo = await fetchSummonerInfo(summonerName);
+      if (!summonerInfo) {
+        throw new Error('Summoner not found');
+      }
+      
+      // Then fetch rank data using the summoner ID
+      const rankData = await fetchSummonerRank(summonerInfo.id);
+      setRankInfo(rankData);
+    } catch (err) {
+      console.error('Error fetching rank data:', err);
+      // Don't show an error message to the user, just log it
+    } finally {
+      setLoadingRank(false);
+    }
+  };
 
   // Filter champions when search term or role changes
   useEffect(() => {
@@ -153,6 +180,9 @@ const Profile: React.FC = () => {
         favoriteChampions: favoriteChampions
       });
 
+      // Fetch updated rank data after submission
+      await fetchRankData(formData.summonerName);
+
       setSuccess('Profile updated successfully');
       toast.success('Profile updated successfully!');
     } catch (err) {
@@ -187,6 +217,24 @@ const Profile: React.FC = () => {
     return favoriteChampions.includes(championId);
   };
 
+  // Helper function to get queue type display name
+  const getQueueTypeName = (queueType: string): string => {
+    switch (queueType) {
+      case 'RANKED_SOLO_5x5':
+        return 'Ranked Solo/Duo';
+      case 'RANKED_FLEX_SR':
+        return 'Ranked Flex';
+      default:
+        return queueType;
+    }
+  };
+
+  // Helper function to get tier image
+  const getTierImage = (tier: string): string => {
+    const lowerTier = tier.toLowerCase();
+    return `https://opgg-static.akamaized.net/images/medals/${lowerTier}.png`;
+  };
+
   if (loading) {
     return <div className="loading">Loading profile...</div>;
   }
@@ -200,6 +248,52 @@ const Profile: React.FC = () => {
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="profile-container">
         <h1>Edit Profile</h1>
+        
+        {/* Rank information section */}
+        {rankInfo.length > 0 && (
+          <div className="rank-section">
+            <h2>Rank Information</h2>
+            <div className="rank-cards">
+              {rankInfo.map((rank, index) => (
+                <div key={index} className="rank-card">
+                  <div className="rank-header">
+                    <img 
+                      src={getTierImage(rank.tier)} 
+                      alt={rank.tier} 
+                      className="tier-icon" 
+                    />
+                    <div className="rank-title">
+                      <h3>{getQueueTypeName(rank.queueType)}</h3>
+                      <div className="rank-tier">
+                        {rank.tier} {rank.rank} - {rank.leaguePoints} LP
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rank-stats">
+                    <div className="win-loss">
+                      <span className="wins">{rank.wins}W</span> / 
+                      <span className="losses">{rank.losses}L</span>
+                    </div>
+                    <div className="win-rate">
+                      Win Rate: {Math.round((rank.wins / (rank.wins + rank.losses)) * 100)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {rankInfo.length === 0 && !loadingRank && (
+                <div className="no-rank">
+                  No ranked information available
+                </div>
+              )}
+              {loadingRank && (
+                <div className="loading-rank">
+                  Loading rank information...
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="summonerName">Summoner Name</label>

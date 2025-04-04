@@ -25,6 +25,8 @@ export default function CreateTeam() {
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const user = auth.currentUser;
 
@@ -70,7 +72,11 @@ export default function CreateTeam() {
         roles: roles,
         createdAt: new Date(),
         discordLink: discordLink || null,
-        members: [] // Start with empty members array - creator is tracked separately by creatorId
+        members: [], // Start with empty members array - creator is tracked separately by creatorId
+        passwordProtected: isPasswordProtected,
+        password: isPasswordProtected ? password : null,
+        discordAccess: [], // Initialize empty arrays for Discord access management
+        discordRequests: []
       });
 
       // Create or update user document
@@ -125,6 +131,35 @@ export default function CreateTeam() {
               onChange={(e) => setDiscordLink(e.target.value)}
               placeholder="Enter Discord link"
             />
+          </div>
+          <div className="form-group password-protection">
+            <div className="password-checkbox">
+              <input
+                type="checkbox"
+                id="passwordProtected"
+                checked={isPasswordProtected}
+                onChange={() => setIsPasswordProtected(!isPasswordProtected)}
+              />
+              <label htmlFor="passwordProtected">Password protect this team</label>
+            </div>
+            
+            {isPasswordProtected && (
+              <div className="password-input-container">
+                <label htmlFor="password">Team Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required={isPasswordProtected}
+                  placeholder="Enter password"
+                  minLength={4}
+                />
+                <div className="password-hint">
+                  Players will need this password to join your team
+                </div>
+              </div>
+            )}
           </div>
           <div className="roles-preview">
             <h3>Available Roles</h3>
