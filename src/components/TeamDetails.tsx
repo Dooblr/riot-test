@@ -603,22 +603,49 @@ export default function TeamDetails() {
       updatedRoles[roleIndex] = {
         ...updatedRoles[roleIndex],
         filled: false,
-        userId: undefined // Using undefined instead of null to fix type issues
+        userId: undefined, // Using undefined instead of null to fix type issues
+        preferredChampion: undefined, // Also clear champion selections
+        backupChampion: undefined
       };
 
+      // Find the member to remove
       const memberToRemove = team.members.find(m => 
         m.userId === userToRemove && m.role === roleName
       );
 
       const teamRef = doc(db, 'teams', team.id);
+      
+      // First update the roles
       await updateDoc(teamRef, { roles: updatedRoles });
       
+      // Then remove the member if found - handle as a separate operation
       if (memberToRemove) {
-        await updateDoc(teamRef, {
-          members: arrayRemove(memberToRemove)
-        });
+        try {
+          // Create a proper copy of the member object to avoid timestamp conversion issues
+          const memberObj = {
+            userId: memberToRemove.userId,
+            role: memberToRemove.role,
+            joinedAt: memberToRemove.joinedAt
+          };
+          
+          await updateDoc(teamRef, {
+            members: arrayRemove(memberObj)
+          });
+        } catch (memberErr) {
+          console.error('Error removing member:', memberErr, 'Member object:', memberToRemove);
+          // If removing the member fails, try a different approach - update the members array directly
+          try {
+            const updatedMembers = team.members.filter(m => 
+              !(m.userId === userToRemove && m.role === roleName)
+            );
+            await updateDoc(teamRef, { members: updatedMembers });
+          } catch (fallbackErr) {
+            console.error('Fallback member removal also failed:', fallbackErr);
+          }
+        }
       }
 
+      // Update the local state
       setTeam(prevTeam => {
         if (!prevTeam) return null;
         
@@ -632,6 +659,9 @@ export default function TeamDetails() {
           members: updatedMembers
         };
       });
+
+      // Success - clear any previous errors
+      setError(null);
 
     } catch (err) {
       console.error('Error removing user from role:', err);

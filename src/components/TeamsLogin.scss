@@ -33,21 +33,151 @@
       font-size: 1.1rem;
     }
 
-    .google-sign-in {
-      background: $lol-gold;
-      color: $dark-bg;
-      border: none;
-      padding: 1rem 2rem;
+    .email-password-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        
+        label {
+          font-size: 0.9rem;
+          color: $text-color;
+          font-weight: 500;
+        }
+        
+        input {
+          padding: 0.75rem 1rem;
+          border-radius: 4px;
+          border: 1px solid rgba($lol-gold, 0.4);
+          background-color: rgba($dark-bg, 0.4);
+          color: $text-color;
+          font-size: 1rem;
+          
+          &:focus {
+            outline: none;
+            border-color: $lol-gold;
+            box-shadow: 0 0 0 2px rgba($lol-gold, 0.2);
+          }
+          
+          &::placeholder {
+            color: rgba($text-color-muted, 0.7);
+          }
+          
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+      
+      .email-submit-button {
+        background: $lol-blue;
+        color: $text-color;
+        border: 1px solid $lol-gold;
+        padding: 0.75rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 0.5rem;
+        
+        &:hover {
+          background: rgba($lol-gold, 0.2);
+        }
+        
+        &:active {
+          transform: translateY(1px);
+        }
+        
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+    
+    .auth-toggle {
+      margin-bottom: 1.5rem;
+      
+      .toggle-auth-button {
+        background: none;
+        border: none;
+        color: $lol-gold;
+        cursor: pointer;
+        font-size: 0.9rem;
+        text-decoration: underline;
+        
+        &:hover {
+          color: color.scale($lol-gold, $lightness: 10%);
+        }
+      }
+    }
+    
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 1.5rem 0;
+      
+      &::before,
+      &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background-color: rgba($text-color-muted, 0.3);
+      }
+      
+      span {
+        padding: 0 1rem;
+        font-size: 0.8rem;
+        color: $text-color-muted;
+      }
+    }
+    
+    .social-auth-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .google-sign-in, .apple-sign-in {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: transparent;
+      color: $text-color;
+      border: 1px solid rgba($text-color, 0.3);
+      padding: 0.75rem;
       border-radius: 4px;
-      font-size: 1.1rem;
-      font-weight: bold;
+      font-size: 1rem;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
       width: 100%;
-      max-width: 300px;
+
+      .icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: $text-color;
+        color: $dark-bg;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
 
       &:hover {
-        background: color.scale($lol-gold, $lightness: 10%);
+        background: rgba($text-color, 0.05);
         transform: translateY(-2px);
       }
 
@@ -56,8 +186,32 @@
       }
 
       &:disabled {
-        background-color: $text-color-muted;
+        opacity: 0.6;
         cursor: not-allowed;
+      }
+    }
+    
+    .google-sign-in {
+      border-color: rgba($lol-gold, 0.4);
+      
+      .icon {
+        background: $lol-gold;
+      }
+      
+      &:hover {
+        background: rgba($lol-gold, 0.1);
+      }
+    }
+    
+    .apple-sign-in {
+      border-color: rgba($text-color, 0.4);
+      
+      .icon {
+        background: $text-color;
+      }
+      
+      &:hover {
+        background: rgba($text-color, 0.05);
       }
     }
 
@@ -68,6 +222,7 @@
       background: rgba($error-color, 0.1);
       border-radius: 4px;
       border: 1px solid $error-color;
+      font-size: 0.9rem;
     }
   }
 } 
