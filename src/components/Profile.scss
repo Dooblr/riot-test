@@ -11,7 +11,7 @@
     border-radius: 8px;
     padding: 2rem;
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     
     h1 {
@@ -55,67 +55,259 @@
         color: $text-color-muted;
       }
     }
+
+    .champion-selection {
+      margin-top: 2rem;
+      border-top: 1px solid $border-color;
+      padding-top: 1.5rem;
+
+      .champion-filter {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        
+        .champion-search {
+          flex: 1;
+        }
+        
+        .role-filter {
+          min-width: 150px;
+          
+          .role-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid $border-color;
+            border-radius: 4px;
+            background-color: $input-bg;
+            color: $text-color;
+            font-size: 1rem;
+            cursor: pointer;
+            
+            &:focus {
+              outline: none;
+              border-color: $lol-gold;
+            }
+            
+            option {
+              background-color: $lol-dark;
+              color: $text-color;
+            }
+          }
+        }
+      }
+      
+      .champions-loading {
+        text-align: center;
+        color: $lol-gold;
+        padding: 2rem;
+        font-style: italic;
+      }
+      
+      .champions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 0.5rem;
+        background-color: rgba($lol-dark, 0.5);
+        border-radius: 4px;
+        
+        .champion-item {
+          position: relative;
+          background-color: $lol-dark;
+          border-radius: 4px;
+          overflow: hidden;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 2px solid transparent;
+          
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          }
+          
+          &.favorite {
+            border-color: $lol-gold;
+          }
+          
+          .champion-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+          }
+          
+          .champion-name {
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: $lol-gold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          
+          .champion-roles {
+            padding: 0 0.5rem 0.5rem;
+            text-align: center;
+            font-size: 0.65rem;
+            color: $text-color-muted;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          
+          .favorite-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background-color: $lol-gold;
+            color: $lol-dark;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+          }
+        }
+      }
+      
+      .selected-champions {
+        background-color: rgba($lol-dark, 0.3);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        
+        h3 {
+          color: $lol-gold;
+          margin-top: 0;
+          margin-bottom: 1rem;
+          font-size: 1.1rem;
+        }
+        
+        .no-champions {
+          text-align: center;
+          color: $text-color-muted;
+          font-style: italic;
+          padding: 1rem;
+        }
+        
+        .selected-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          
+          .selected-champion {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: $lol-dark;
+            border-radius: 20px;
+            padding: 0.3rem 0.3rem 0.3rem 0.3rem;
+            max-width: 100%;
+            
+            .champion-thumbnail {
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              object-fit: cover;
+            }
+            
+            span {
+              font-size: 0.8rem;
+              color: $lol-gold;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100px;
+            }
+            
+            .remove-champion {
+              background: none;
+              border: none;
+              color: $error-color;
+              font-size: 1.2rem;
+              line-height: 1;
+              cursor: pointer;
+              padding: 0 0.3rem;
+              margin-left: auto;
+              
+              &:hover {
+                color: color.scale($error-color, $lightness: 20%);
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .error-message,
+    .success-message {
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 4px;
+      text-align: center;
+    }
     
     .error-message {
       background-color: rgba($error-color, 0.1);
       color: $error-color;
-      padding: 0.75rem;
-      border-radius: 4px;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      text-align: center;
+      border: 1px solid rgba($error-color, 0.3);
     }
     
     .success-message {
       background-color: rgba($success-color, 0.1);
       color: $success-color;
-      padding: 0.75rem;
-      border-radius: 4px;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      text-align: center;
+      border: 1px solid rgba($success-color, 0.3);
     }
     
     .form-actions {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
+      gap: 1rem;
       margin-top: 2rem;
       
       button {
         padding: 0.75rem 1.5rem;
         border-radius: 4px;
-        font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+      }
+      
+      .save-button {
+        background-color: $lol-gold;
+        color: $lol-dark;
+        border: none;
+        
+        &:hover:not(:disabled) {
+          background-color: color.scale($lol-gold, $lightness: -10%);
+          transform: translateY(-2px);
+        }
+        
+        &:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
       }
       
       .cancel-button {
         background-color: transparent;
-        color: $text-color;
+        color: $text-color-muted;
         border: 1px solid $border-color;
         
         &:hover {
-          background-color: rgba($text-color, 0.1);
-        }
-      }
-      
-      .save-button {
-        background-color: $discord-blue;
-        color: white;
-        border: none;
-        
-        &:hover {
-          background-color: color.scale($discord-blue, $lightness: -10%);
-        }
-        
-        &:disabled {
-          background-color: $text-color-muted;
-          cursor: not-allowed;
+          background-color: rgba($text-color-muted, 0.1);
+          transform: translateY(-2px);
         }
       }
     }
-
+    
     .logout-section {
       margin-top: 2rem;
       padding-top: 1.5rem;
@@ -161,5 +353,30 @@
     background-color: rgba(255, 68, 68, 0.1);
     border-radius: 8px;
     border: 1px solid #ff4444;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+    
+    .profile-container {
+      padding: 1.5rem;
+      
+      .champion-filter {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      
+      .champions-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      }
+      
+      .form-actions {
+        flex-direction: column-reverse;
+        
+        button {
+          width: 100%;
+        }
+      }
+    }
   }
 } 

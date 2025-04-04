@@ -14,6 +14,7 @@ interface Team {
     name: string;
     filled: boolean;
     userId?: string;
+    preferredChampion?: string;
   }[];
   members: {
     userId: string;
@@ -22,6 +23,8 @@ interface Team {
   }[];
   createdAt: Date;
   discordLink?: string;
+  discordAccess?: string[];
+  discordRequests?: string[];
 }
 
 interface RoleUser {
@@ -35,6 +38,15 @@ interface TeamComment {
   username: string;
   text: string;
   createdAt: Date;
+}
+
+interface ChampionData {
+  id: string;
+  key: string;
+  name: string;
+  title: string;
+  imageUrl: string;
+  roles: string[];
 }
 
 // Role icon mapping
@@ -73,9 +85,55 @@ export default function TeamDetails() {
   const [newComment, setNewComment] = useState('');
   const [commentError, setCommentError] = useState<string | null>(null);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [userChampions, setUserChampions] = useState<Record<string, ChampionData[]>>({});
+  const [loadingChampions, setLoadingChampions] = useState(false);
+  const [isSelectingChampion, setIsSelectingChampion] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [updatingChampion, setUpdatingChampion] = useState(false);
+  const [requestingDiscord, setRequestingDiscord] = useState(false);
+  const [discordRequestSuccess, setDiscordRequestSuccess] = useState(false);
+  const [pendingDiscordRequests, setPendingDiscordRequests] = useState<string[]>([]);
+
+  const fetchUserChampions = async (userId: string) => {
+    try {
+      setLoadingChampions(true);
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        return [];
+      }
+      
+      const userData = userDoc.data();
+      const favoriteChampionIds = userData.favoriteChampions || [];
+      
+      if (favoriteChampionIds.length === 0) {
+        return [];
+      }
+      
+      const response = await fetch('https://ddragon.leagueoflegends.com/cdn/13.24.1/data/en_US/champion.json');
+      const data = await response.json();
+      const allChampions = Object.values(data.data) as any[];
+      
+      const favoriteChampions = allChampions
+        .filter(champion => favoriteChampionIds.includes(champion.id))
+        .map(champion => ({
+          id: champion.id,
+          key: champion.key,
+          name: champion.name,
+          title: champion.title,
+          imageUrl: `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${champion.image.full}`,
+          roles: champion.tags || []
+        }));
+      
+      return favoriteChampions;
+    } catch (err) {
+      console.error('Error fetching champion data:', err);
+      return [];
+    } finally {
+      setLoadingChampions(false);
+    }
+  };
 
   useEffect(() => {
-    // Declare the unsubscribe function outside of fetchTeamDetails
     let commentsUnsubscribe: (() => void) | undefined;
     
     const fetchTeamDetails = async () => {
@@ -98,14 +156,21 @@ export default function TeamDetails() {
         setTeamName(teamData.name);
         setDiscordLink(teamData.discordLink || '');
         setDescription(teamData.description || '');
+        
+        if (teamData.discordRequests && teamData.discordRequests.length > 0) {
+          setPendingDiscordRequests(teamData.discordRequests);
+        } else {
+          setPendingDiscordRequests([]);
+        }
 
-        // Fetch user information for all filled roles
         const userIds = new Set<string>();
         teamData.roles.forEach(role => {
           if (role.userId) userIds.add(role.userId);
         });
 
         const userProfiles: Record<string, RoleUser> = {};
+        const championsData: Record<string, ChampionData[]> = {};
+
         for (const userId of userIds) {
           const userDoc = await getDoc(doc(db, 'users', userId));
           if (userDoc.exists()) {
@@ -114,11 +179,14 @@ export default function TeamDetails() {
               userId,
               username: userData.summonerName || 'Unknown'
             };
+            
+            const userChampionData = await fetchUserChampions(userId);
+            championsData[userId] = userChampionData;
           }
         }
         setRoleUsers(userProfiles);
+        setUserChampions(championsData);
 
-        // Set up comments listener with error handling
         if (teamId) {
           try {
             const commentsQuery = query(
@@ -139,12 +207,10 @@ export default function TeamDetails() {
                 });
               });
               setComments(commentsList);
-              setCommentError(null); // Clear any previous error
+              setCommentError(null);
             }, (error) => {
               console.error("Error fetching comments:", error);
-              // Set a user-friendly error message
               setCommentError('Unable to load comments. Please try again later.');
-              // Still provide a valid state for comments
               setComments([]);
             });
           } catch (commentsError) {
@@ -163,7 +229,6 @@ export default function TeamDetails() {
 
     fetchTeamDetails();
     
-    // Clean up listeners
     return () => {
       if (commentsUnsubscribe) {
         commentsUnsubscribe();
@@ -203,20 +268,17 @@ export default function TeamDetails() {
     }
 
     try {
-      // Check if the user is already in any role in this team
       if (isUserInAnyRole(user.uid)) {
         setJoinError('You are already in a role in this team');
         return;
       }
 
-      // Check if the role is already filled
       const roleIndex = team.roles.findIndex(r => r.name === roleName);
       if (roleIndex === -1 || team.roles[roleIndex].filled) {
         setJoinError('This role is already filled');
         return;
       }
 
-      // Update the team with the new role
       const teamRef = doc(db, 'teams', team.id);
       const updatedRoles = [...team.roles];
       updatedRoles[roleIndex] = {
@@ -234,7 +296,6 @@ export default function TeamDetails() {
         })
       });
 
-      // Refresh the team data
       const teamDoc = await getDoc(teamRef);
       if (teamDoc.exists()) {
         const teamData = {
@@ -244,7 +305,6 @@ export default function TeamDetails() {
         } as Team;
         setTeam(teamData);
 
-        // Update role users
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -275,7 +335,6 @@ export default function TeamDetails() {
     setJoinError(null);
 
     try {
-      // Find current user role
       const currentRole = team.roles.find(role => role.userId === user.uid);
       if (!currentRole) {
         setJoinError('You are not currently in any role');
@@ -283,7 +342,6 @@ export default function TeamDetails() {
         return;
       }
 
-      // Find new role
       const newRoleIndex = team.roles.findIndex(r => r.name === newRoleName);
       if (newRoleIndex === -1) {
         setJoinError('Selected role does not exist');
@@ -291,18 +349,15 @@ export default function TeamDetails() {
         return;
       }
 
-      // Check if new role is already filled
       if (team.roles[newRoleIndex].filled) {
         setJoinError('The selected role is already filled');
         setIsSwapping(false);
         return;
       }
 
-      // Update the team with the role swap
       const teamRef = doc(db, 'teams', team.id);
       const updatedRoles = [...team.roles];
       
-      // Remove user from current role
       const currentRoleIndex = updatedRoles.findIndex(r => r.userId === user.uid);
       updatedRoles[currentRoleIndex] = {
         ...updatedRoles[currentRoleIndex],
@@ -310,14 +365,12 @@ export default function TeamDetails() {
         userId: null
       };
       
-      // Add user to new role
       updatedRoles[newRoleIndex] = {
         ...updatedRoles[newRoleIndex],
         filled: true,
         userId: user.uid
       };
 
-      // Update members array
       const oldMember = team.members.find(m => m.userId === user.uid && m.role === currentRole.name);
       const newMember = {
         userId: user.uid,
@@ -334,7 +387,6 @@ export default function TeamDetails() {
         members: arrayUnion(newMember)
       });
 
-      // Refresh the team data
       const teamDoc = await getDoc(teamRef);
       if (teamDoc.exists()) {
         const teamData = {
@@ -355,7 +407,6 @@ export default function TeamDetails() {
   const handleUpdateDiscordLink = async () => {
     if (!team || !user) return;
     
-    // Check if user is the team owner
     if (user.uid !== team.creatorId) {
       setDiscordError('Only the team owner can update the Discord link');
       return;
@@ -364,7 +415,6 @@ export default function TeamDetails() {
     setDiscordError(null);
     
     try {
-      // Validate discord link
       let formattedLink = discordLink.trim();
       if (formattedLink && !formattedLink.startsWith('http')) {
         formattedLink = `https://${formattedLink}`;
@@ -375,7 +425,6 @@ export default function TeamDetails() {
         discordLink: formattedLink
       });
 
-      // Refresh team data
       const teamDoc = await getDoc(teamRef);
       if (teamDoc.exists()) {
         const teamData = {
@@ -396,7 +445,6 @@ export default function TeamDetails() {
   const handleUpdateDescription = async () => {
     if (!team || !user) return;
     
-    // Check if user is the team owner
     if (user.uid !== team.creatorId) {
       setDescriptionError('Only the team owner can update the description');
       return;
@@ -410,7 +458,6 @@ export default function TeamDetails() {
         description: description.trim()
       });
 
-      // Refresh team data
       const teamDoc = await getDoc(teamRef);
       if (teamDoc.exists()) {
         const teamData = {
@@ -463,7 +510,6 @@ export default function TeamDetails() {
         name: teamName.trim()
       });
 
-      // Update local state
       setTeam(prevTeam => {
         if (!prevTeam) return null;
         return { ...prevTeam, name: teamName.trim() };
@@ -487,7 +533,6 @@ export default function TeamDetails() {
     setCommentError(null);
     
     try {
-      // Get current user's name
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (!userDoc.exists()) {
         throw new Error('User profile not found');
@@ -496,7 +541,6 @@ export default function TeamDetails() {
       const userData = userDoc.data();
       const username = userData.summonerName || userData.username || 'Unknown';
       
-      // Add comment to the team's comments subcollection
       try {
         await addDoc(collection(db, 'teams', team.id, 'comments'), {
           userId: user.uid,
@@ -505,7 +549,6 @@ export default function TeamDetails() {
           createdAt: serverTimestamp()
         });
         
-        // Clear the comment input
         setNewComment('');
         setCommentError(null);
       } catch (writeError) {
@@ -531,19 +574,16 @@ export default function TeamDetails() {
       
       if (!userToRemove) return;
       
-      // Update the role to be unfilled
       updatedRoles[roleIndex] = {
         ...updatedRoles[roleIndex],
         filled: false,
         userId: undefined
       };
 
-      // Find the member to remove
       const memberToRemove = team.members.find(m => 
         m.userId === userToRemove && m.role === updatedRoles[roleIndex].name
       );
 
-      // Update Firestore
       const teamRef = doc(db, 'teams', team.id);
       await updateDoc(teamRef, { roles: updatedRoles });
       
@@ -553,11 +593,9 @@ export default function TeamDetails() {
         });
       }
 
-      // Update local state
       setTeam(prevTeam => {
         if (!prevTeam) return null;
         
-        // Filter out the removed member
         const updatedMembers = prevTeam.members.filter(m => 
           !(m.userId === userToRemove && m.role === updatedRoles[roleIndex].name)
         );
@@ -580,10 +618,179 @@ export default function TeamDetails() {
     
     try {
       await deleteDoc(doc(db, 'teams', team.id, 'comments', commentId));
-      // No need to update state manually as the onSnapshot listener will catch this change
     } catch (err) {
       console.error('Error deleting comment:', err);
       setCommentError('Failed to delete comment');
+    }
+  };
+
+  const handleSelectChampion = async (championId: string) => {
+    if (!user || !team || !selectedRole) return;
+    
+    setUpdatingChampion(true);
+    
+    try {
+      const roleIndex = team.roles.findIndex(role => 
+        role.name === selectedRole && role.userId === user.uid
+      );
+      
+      if (roleIndex === -1) {
+        console.error('Role not found or not owned by current user');
+        return;
+      }
+      
+      const updatedRoles = [...team.roles];
+      updatedRoles[roleIndex] = {
+        ...updatedRoles[roleIndex],
+        preferredChampion: championId
+      };
+      
+      const teamRef = doc(db, 'teams', team.id);
+      await updateDoc(teamRef, { roles: updatedRoles });
+      
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        return {
+          ...prevTeam,
+          roles: updatedRoles
+        };
+      });
+      
+      setIsSelectingChampion(false);
+      setSelectedRole(null);
+    } catch (err) {
+      console.error('Error updating preferred champion:', err);
+      setError('Failed to update champion preference');
+    } finally {
+      setUpdatingChampion(false);
+    }
+  };
+
+  const getPreferredChampion = (roleUserId: string | undefined, roleName: string) => {
+    if (!team || !roleUserId) return null;
+    
+    const role = team.roles.find(r => r.name === roleName && r.userId === roleUserId);
+    if (!role || !role.preferredChampion) return null;
+    
+    if (userChampions[roleUserId]) {
+      return userChampions[roleUserId].find(champion => champion.id === role.preferredChampion);
+    }
+    
+    return null;
+  };
+
+  const hasDiscordAccess = () => {
+    if (!user || !team) return false;
+    
+    if (user.uid === team.creatorId) return true;
+    
+    return team.discordAccess?.includes(user.uid) || false;
+  };
+
+  const hasRequestedDiscord = () => {
+    if (!user || !team) return false;
+    return team.discordRequests?.includes(user.uid) || false;
+  };
+
+  const handleRequestDiscordAccess = async () => {
+    if (!user || !team) return;
+    
+    setRequestingDiscord(true);
+    setDiscordRequestSuccess(false);
+    setDiscordError(null);
+    
+    try {
+      const teamRef = doc(db, 'teams', team.id);
+      
+      await updateDoc(teamRef, {
+        discordRequests: arrayUnion(user.uid)
+      });
+      
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        
+        const updatedRequests = [...(prevTeam.discordRequests || [])];
+        if (!updatedRequests.includes(user.uid)) {
+          updatedRequests.push(user.uid);
+        }
+        
+        return {
+          ...prevTeam,
+          discordRequests: updatedRequests
+        };
+      });
+      
+      setDiscordRequestSuccess(true);
+    } catch (err) {
+      console.error('Error requesting Discord access:', err);
+      setDiscordError('Failed to request Discord access. Please try again.');
+    } finally {
+      setRequestingDiscord(false);
+    }
+  };
+
+  const handleApproveDiscordAccess = async (userId: string) => {
+    if (!user || !team || !isTeamOwner()) return;
+    
+    try {
+      const teamRef = doc(db, 'teams', team.id);
+      
+      await updateDoc(teamRef, {
+        discordAccess: arrayUnion(userId),
+        discordRequests: arrayRemove(userId)
+      });
+      
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        
+        const updatedAccess = [...(prevTeam.discordAccess || [])];
+        if (!updatedAccess.includes(userId)) {
+          updatedAccess.push(userId);
+        }
+        
+        const updatedRequests = (prevTeam.discordRequests || []).filter(id => id !== userId);
+        
+        return {
+          ...prevTeam,
+          discordAccess: updatedAccess,
+          discordRequests: updatedRequests
+        };
+      });
+      
+      setPendingDiscordRequests(prev => prev.filter(id => id !== userId));
+      
+    } catch (err) {
+      console.error('Error approving Discord access:', err);
+      setDiscordError('Failed to approve Discord access. Please try again.');
+    }
+  };
+
+  const handleDenyDiscordAccess = async (userId: string) => {
+    if (!user || !team || !isTeamOwner()) return;
+    
+    try {
+      const teamRef = doc(db, 'teams', team.id);
+      
+      await updateDoc(teamRef, {
+        discordRequests: arrayRemove(userId)
+      });
+      
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        
+        const updatedRequests = (prevTeam.discordRequests || []).filter(id => id !== userId);
+        
+        return {
+          ...prevTeam,
+          discordRequests: updatedRequests
+        };
+      });
+      
+      setPendingDiscordRequests(prev => prev.filter(id => id !== userId));
+      
+    } catch (err) {
+      console.error('Error denying Discord access:', err);
+      setDiscordError('Failed to deny Discord access. Please try again.');
     }
   };
 
@@ -743,7 +950,7 @@ export default function TeamDetails() {
               type="text"
               value={discordLink}
               onChange={(e) => setDiscordLink(e.target.value)}
-              placeholder="Enter Discord invite link"
+              placeholder="Enter Discord link"
               className="discord-input"
             />
             {discordError && <div className="discord-error">{discordError}</div>}
@@ -769,24 +976,48 @@ export default function TeamDetails() {
         ) : (
           <div className="discord-display">
             {team.discordLink ? (
-              <>
-                <a 
-                  href={team.discordLink} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="discord-link-button"
-                >
-                  Join Discord Server
-                </a>
-                {isTeamOwner() && (
-                  <button 
-                    onClick={() => setIsEditingDiscord(true)} 
-                    className="edit-discord-button"
+              hasDiscordAccess() ? (
+                <>
+                  <a 
+                    href={team.discordLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="discord-link-button"
                   >
-                    Edit Link
+                    Join Discord Server
+                  </a>
+                  {isTeamOwner() && (
+                    <button 
+                      onClick={() => setIsEditingDiscord(true)} 
+                      className="edit-discord-button"
+                    >
+                      Edit Link
+                    </button>
+                  )}
+                </>
+              ) : hasRequestedDiscord() ? (
+                <div className="discord-pending">
+                  <span className="pending-icon">⏳</span>
+                  <span>Access request pending approval</span>
+                </div>
+              ) : (
+                <div className="discord-request">
+                  <p>Discord server access is restricted. Request to join:</p>
+                  <button 
+                    onClick={handleRequestDiscordAccess}
+                    disabled={requestingDiscord}
+                    className="request-discord-button"
+                  >
+                    {requestingDiscord ? 'Requesting...' : 'Request Access'}
                   </button>
-                )}
-              </>
+                  {discordRequestSuccess && (
+                    <div className="discord-success">
+                      Request sent! Wait for approval from team owner.
+                    </div>
+                  )}
+                  {discordError && <div className="discord-error">{discordError}</div>}
+                </div>
+              )
             ) : (
               isTeamOwner() ? (
                 <button 
@@ -799,15 +1030,46 @@ export default function TeamDetails() {
                 <div className="no-discord">No Discord link provided</div>
               )
             )}
+            
+            {isTeamOwner() && pendingDiscordRequests.length > 0 && (
+              <div className="discord-requests">
+                <h4>Pending Access Requests</h4>
+                <div className="requests-list">
+                  {pendingDiscordRequests.map(userId => (
+                    <div key={userId} className="request-item">
+                      <span className="request-user">
+                        {roleUsers[userId]?.username || 'Unknown User'}
+                      </span>
+                      <div className="request-actions">
+                        <button 
+                          onClick={() => handleApproveDiscordAccess(userId)}
+                          className="approve-button"
+                          title="Approve request"
+                        >
+                          ✅
+                        </button>
+                        <button 
+                          onClick={() => handleDenyDiscordAccess(userId)}
+                          className="deny-button"
+                          title="Deny request"
+                        >
+                          ❌
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <div className="roles-grid">
         {team.roles.map((role) => {
-          // Determine the role status for styling
           const isUserRole = role.userId === user?.uid;
           const isFilled = role.filled;
+          const preferredChampion = getPreferredChampion(role.userId, role.name);
           
           return (
             <div 
@@ -835,6 +1097,70 @@ export default function TeamDetails() {
                       Remove
                     </button>
                   )}
+                  
+                  {preferredChampion && (
+                    <div className="preferred-champion">
+                      <h4>Selected Champion:</h4>
+                      <div 
+                        className={`preferred-champion-display ${role.userId === user?.uid ? 'clickable' : ''}`}
+                        onClick={() => {
+                          if (role.userId === user?.uid) {
+                            setSelectedRole(role.name);
+                            setIsSelectingChampion(true);
+                          }
+                        }}
+                        title={role.userId === user?.uid ? "Click to change champion" : ""}
+                      >
+                        <img 
+                          src={preferredChampion.imageUrl} 
+                          alt={preferredChampion.name} 
+                          className="preferred-champion-image"
+                        />
+                        <span className="preferred-champion-name">{preferredChampion.name}</span>
+                        {role.userId === user?.uid && (
+                          <span className="change-indicator">✏️</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {role.userId === user?.uid && !preferredChampion && (
+                    <button 
+                      onClick={() => {
+                        setSelectedRole(role.name);
+                        setIsSelectingChampion(true);
+                      }}
+                      className="select-champion-button"
+                    >
+                      Select Champion
+                    </button>
+                  )}
+                  
+                  {/* {role.userId && userChampions[role.userId]?.length > 0 && (
+                    <div className="player-champions">
+                      <h4>Champion Pool:</h4>
+                      <div className="champion-icons">
+                        {userChampions[role.userId].slice(0, 5).map(champion => (
+                          <div 
+                            key={champion.id} 
+                            className={`champion-icon ${role.preferredChampion === champion.id ? 'selected' : ''}`} 
+                            title={champion.name}
+                          >
+                            <img 
+                              src={champion.imageUrl} 
+                              alt={champion.name} 
+                              className="champion-avatar"
+                            />
+                          </div>
+                        ))}
+                        {userChampions[role.userId].length > 5 && (
+                          <div className="more-champions">
+                            +{userChampions[role.userId].length - 5}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )} */}
                 </div>
               ) : (
                 <div className="role-open">
@@ -861,7 +1187,6 @@ export default function TeamDetails() {
         })}
       </div>
 
-      {/* Comments Section */}
       <div className="comments-section">
         <h3>Team Discussion</h3>
         
@@ -960,6 +1285,70 @@ export default function TeamDetails() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {isSelectingChampion && user && selectedRole && (
+        <div className="modal-overlay">
+          <div className="champion-selection-modal">
+            <div className="modal-header">
+              <h3>Select a Champion for {selectedRole}</h3>
+              <button 
+                className="close-modal-button"
+                onClick={() => {
+                  setIsSelectingChampion(false);
+                  setSelectedRole(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="champions-grid">
+              {user && userChampions[user.uid]?.length > 0 ? (
+                userChampions[user.uid].map(champion => (
+                  <div 
+                    key={champion.id}
+                    className="champion-selection-item"
+                    onClick={() => handleSelectChampion(champion.id)}
+                  >
+                    <img 
+                      src={champion.imageUrl} 
+                      alt={champion.name} 
+                      className="champion-selection-image"
+                    />
+                    <span className="champion-selection-name">{champion.name}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="no-champions-message">
+                  <p>You haven't added any champions to your pool yet.</p>
+                  <button 
+                    className="go-to-profile-button"
+                    onClick={() => navigate('/teams/profile')}
+                  >
+                    Go to Profile to Add Champions
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {updatingChampion && (
+              <div className="updating-message">Updating your champion...</div>
+            )}
+            
+            <div className="modal-footer">
+              <div className="profile-link">
+                <span>Want to add more champions to your pool?</span>
+                <button 
+                  className="go-to-profile-link"
+                  onClick={() => navigate('/teams/profile')}
+                >
+                  Edit your champion pool
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

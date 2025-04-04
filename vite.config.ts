@@ -21,8 +21,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    minify: false,
+    sourcemap: 'inline',
+    minify: true,
     rollupOptions: {
       onwarn(warning, warn) {
         // Skip all warnings

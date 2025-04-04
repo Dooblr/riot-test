@@ -106,6 +106,21 @@ const columns = [
   }),
 ];
 
+const roleIcons: Record<string, string> = {
+  'Top': '🛡️',
+  'Jungle': '🌲',
+  'Mid': '✨',
+  'ADC': '🏹',
+  'Support': '💖',
+};
+
+// Helper function to format date
+const formatDate = (date: Date): string => {
+  if (!date) return "Unknown date";
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+};
+
 export default function Teams() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -130,11 +145,11 @@ export default function Teams() {
 
   // Role filter animation variants
   const roleButtonVariants = {
-    initial: { scale: 0.9, opacity: 0 },
-    animate: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 300 } },
-    hover: { scale: 1.05, transition: { type: "spring", stiffness: 400 } },
-    tap: { scale: 0.95 },
-    exit: { scale: 0.9, opacity: 0 }
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.2 } },
+    hover: { boxShadow: "0 0 8px rgba(208, 168, 92, 0.5)" },
+    tap: { boxShadow: "0 0 4px rgba(208, 168, 92, 0.3)" },
+    exit: { opacity: 0 }
   };
 
   const containerVariants = {
@@ -438,50 +453,97 @@ export default function Teams() {
               No teams are looking for {roleFilter.length === 1 ? 'a' : ''} {roleFilter.join(', ')} {roleFilter.length === 1 ? 'player' : 'players'} at the moment.
             </motion.div>
           ) : (
-            <motion.table 
-              className="teams-table"
-              key="teams-table"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th key={header.id}>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table.getRowModel().rows.map((row) => (
-                  <motion.tr
-                    key={row.id}
-                    onClick={() => handleTeamClick(row.original.id)}
-                    className="team-row"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    whileHover={{ backgroundColor: "rgba(197, 172, 87, 0.2)" }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </motion.tr>
-                ))}
-              </tbody>
-            </motion.table>
+            <>
+              {/* Desktop Table View */}
+              <motion.table 
+                className="teams-table"
+                key="teams-table"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th key={header.id}>
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map((row) => (
+                    <motion.tr
+                      key={row.id}
+                      onClick={() => handleTeamClick(row.original.id)}
+                      className="team-row"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                      whileHover={{ backgroundColor: "rgba(197, 172, 87, 0.2)" }}
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        // Get column header for data-label attribute
+                        const header = cell.column.columnDef.header as string;
+                        const isDiscordColumn = cell.column.id === "discordLink";
+                        const isDateColumn = cell.column.id === "createdAt";
+                        
+                        return (
+                          <td 
+                            key={cell.id} 
+                            data-label={header}
+                            className={`${isDiscordColumn || isDateColumn ? 'hide-mobile' : ''}`}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        );
+                      })}
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </motion.table>
+
+              {/* Mobile Card View */}
+              <div className="teams-mobile-cards">
+                <AnimatePresence>
+                  {filteredTeams.map((team) => (
+                    <motion.div 
+                      key={team.id}
+                      className="team-card"
+                      onClick={() => handleTeamClick(team.id)}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="team-card-header">
+                        <div className="team-name">{team.name}</div>
+                        <div className="team-date">{formatDate(team.createdAt)}</div>
+                      </div>
+                      <div className="team-creator">Created by: {team.summonerName}</div>
+                      <div className="team-roles">
+                        {team.roles.map((role, index) => (
+                          <div 
+                            key={index} 
+                            className={`team-role ${role.filled ? 'filled' : ''}`}
+                          >
+                            {role.name} {role.filled ? '✓' : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </>
           )}
         </AnimatePresence>
       </motion.div>

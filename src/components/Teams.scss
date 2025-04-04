@@ -11,6 +11,11 @@ $green-color-dark: #388E3C;
   margin: 0 auto;
   padding: $spacing-xl;
   padding-top: $spacing-md;
+  
+  @media (max-width: $breakpoint-md) {
+    max-width: 95%;
+    padding: $spacing-md;
+  }
 
   .teams-header {
     display: flex;
@@ -133,6 +138,7 @@ $green-color-dark: #388E3C;
           height: 2px;
           background-color: $lol-gold;
           transition: all 0.3s ease;
+          left: 0;
         }
 
         &::before {
@@ -149,11 +155,11 @@ $green-color-dark: #388E3C;
           background-color: transparent;
 
           &::before {
-            transform: rotate(45deg);
+            transform: translateY(0) rotate(45deg);
           }
 
           &::after {
-            transform: rotate(-45deg);
+            transform: translateY(0) rotate(-45deg);
           }
         }
       }
@@ -171,10 +177,12 @@ $green-color-dark: #388E3C;
       box-shadow: $box-shadow;
       padding: $spacing-md;
       position: absolute;
-      right: $spacing-xl;
-      top: 130px;
-      width: 300px;
+      right: $spacing-md;
+      top: 70px;
+      width: 90%;
+      max-width: 300px;
       z-index: 10;
+      animation: slideDown 0.3s ease;
       
       &.mobile-open {
         display: block;
@@ -257,6 +265,7 @@ $green-color-dark: #388E3C;
 
         @media (max-width: $breakpoint-md) {
           width: 100%;
+          min-width: auto;
         }
 
         .search-input {
@@ -354,18 +363,70 @@ $green-color-dark: #388E3C;
     overflow: hidden;
     overflow-x: auto;
 
+    @media (max-width: $breakpoint-md) {
+      overflow-x: hidden;
+    }
+
     .no-teams-message {
       padding: $spacing-xl;
       text-align: center;
       color: $lol-gold;
       font-size: $font-size-lg;
       font-style: italic;
+      
+      @media (max-width: $breakpoint-md) {
+        padding: $spacing-md;
+        font-size: $font-size-md;
+      }
     }
 
     .teams-table {
       width: 100%;
       border-collapse: collapse;
       min-width: 650px;
+
+      @media (max-width: $breakpoint-md) {
+        min-width: unset;
+        display: block;
+        
+        thead {
+          display: none;
+        }
+        
+        tbody {
+          display: block;
+        }
+        
+        tr {
+          display: block;
+          margin-bottom: $spacing-md;
+          border-bottom: 1px solid $lol-gold-20;
+          position: relative;
+        }
+        
+        td {
+          display: block;
+          text-align: right;
+          padding: $spacing-sm $spacing-md;
+          position: relative;
+          border-bottom: none;
+          
+          &:before {
+            content: attr(data-label);
+            position: absolute;
+            left: $spacing-md;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: $font-size-xs;
+            color: $lol-gold;
+          }
+          
+          // Hide less important columns on mobile
+          &.hide-mobile {
+            display: none;
+          }
+        }
+      }
 
       th, td {
         padding: $spacing-md;
@@ -424,6 +485,75 @@ $green-color-dark: #388E3C;
         }
       }
     }
+    
+    // Mobile cards alternative for teams table
+    .teams-mobile-cards {
+      display: none;
+      
+      @media (max-width: $breakpoint-md) {
+        display: block;
+        padding: $spacing-sm;
+      }
+      
+      .team-card {
+        background: rgba($lol-gold, 0.05);
+        border-radius: $border-radius;
+        margin-bottom: $spacing-md;
+        padding: $spacing-md;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid $lol-gold-20;
+        
+        &:hover {
+          background: rgba($lol-gold, 0.1);
+          transform: translateY(-2px);
+        }
+        
+        .team-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: $spacing-sm;
+          
+          .team-name {
+            font-weight: 600;
+            font-size: $font-size-md;
+            color: $lol-gold;
+          }
+          
+          .team-date {
+            font-size: $font-size-xs;
+            color: $text-color-muted;
+          }
+        }
+        
+        .team-creator {
+          margin-bottom: $spacing-sm;
+          font-size: $font-size-sm;
+          color: $text-color;
+        }
+        
+        .team-roles {
+          display: flex;
+          flex-wrap: wrap;
+          gap: $spacing-xs;
+          margin-top: $spacing-sm;
+          
+          .team-role {
+            background: $lol-gold-10;
+            color: $lol-gold;
+            padding: $spacing-xs $spacing-sm;
+            border-radius: $border-radius;
+            font-size: $font-size-xs;
+            font-weight: 600;
+            
+            &.filled {
+              opacity: 0.5;
+            }
+          }
+        }
+      }
+    }
   }
 
   .loading {
@@ -431,6 +561,11 @@ $green-color-dark: #388E3C;
     color: $lol-gold;
     font-size: $font-size-lg;
     padding: $spacing-xl;
+    
+    @media (max-width: $breakpoint-md) {
+      padding: $spacing-md;
+      font-size: $font-size-md;
+    }
   }
 
   .error {
@@ -438,6 +573,11 @@ $green-color-dark: #388E3C;
     color: $lol-error;
     font-size: $font-size-lg;
     padding: $spacing-xl;
+    
+    @media (max-width: $breakpoint-md) {
+      padding: $spacing-md;
+      font-size: $font-size-md;
+    }
   }
 
   .role-filter-container {
@@ -474,13 +614,16 @@ $green-color-dark: #388E3C;
       }
       
       .role-filter-button {
+        width: 80px;
         height: 40px;
+        
         background: $lol-gold-10;
         color: $text-color;
-        border: 1px solid $lol-gold-10;
-        padding: 0 $spacing-md;
+        border: 2px solid transparent;
+        padding: 0;
         border-radius: $border-radius;
         font-size: $font-size-xs;
+        font-weight: 600;
         cursor: pointer;
         transition: all $transition-speed ease;
         display: flex;
@@ -495,9 +638,19 @@ $green-color-dark: #388E3C;
           background: $lol-gold;
           color: $lol-dark;
           border-color: $lol-gold;
-          font-weight: 600;
         }
       }
     }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 } 

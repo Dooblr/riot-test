@@ -265,8 +265,8 @@
 
     .discord-display {
       display: flex;
+      flex-direction: column;
       gap: 1rem;
-      align-items: center;
 
       .discord-link-button {
         display: inline-block;
@@ -330,6 +330,150 @@
       .no-discord {
         color: $text-color-muted;
         font-style: italic;
+      }
+      
+      // Add styles for Discord access request UI
+      .discord-pending {
+        display: flex;
+        align-items: center;
+        background: rgba($discord-blue, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px dashed $discord-blue;
+        color: $discord-blue;
+        font-weight: 600;
+        
+        .pending-icon {
+          font-size: 1.5rem;
+          margin-right: 0.8rem;
+        }
+      }
+      
+      .discord-request {
+        background: rgba($lol-gold, 0.05);
+        padding: 1.2rem;
+        border-radius: 8px;
+        border: 1px solid rgba($lol-gold, 0.2);
+        
+        p {
+          color: $text-color;
+          margin: 0 0 1rem 0;
+        }
+        
+        .request-discord-button {
+          background: $discord-blue;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.2s;
+          
+          &:hover:not(:disabled) {
+            background: color.scale($discord-blue, $lightness: -10%);
+            transform: translateY(-2px);
+          }
+          
+          &:disabled {
+            background: $text-color-muted;
+            cursor: not-allowed;
+            opacity: 0.7;
+          }
+        }
+        
+        .discord-success {
+          margin-top: 1rem;
+          color: #4CAF50;
+          background: rgba(#4CAF50, 0.1);
+          padding: 0.8rem;
+          border-radius: 4px;
+          border-left: 3px solid #4CAF50;
+          font-weight: 500;
+        }
+        
+        .discord-error {
+          margin-top: 1rem;
+          color: $error-color;
+          background: rgba($error-color, 0.1);
+          padding: 0.8rem;
+          border-radius: 4px;
+          border-left: 3px solid $error-color;
+          font-weight: 500;
+        }
+      }
+      
+      // Styles for pending access requests list
+      .discord-requests {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid $border-color;
+        
+        h4 {
+          color: $discord-blue;
+          font-size: 1.1rem;
+          margin: 0 0 1rem 0;
+          display: flex;
+          align-items: center;
+          
+          &::before {
+            content: '👥';
+            margin-right: 0.5rem;
+          }
+        }
+        
+        .requests-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          max-height: 200px;
+          overflow-y: auto;
+          
+          .request-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba($discord-blue, 0.05);
+            padding: 0.8rem;
+            border-radius: 6px;
+            
+            .request-user {
+              font-weight: 500;
+              color: $text-color;
+            }
+            
+            .request-actions {
+              display: flex;
+              gap: 0.5rem;
+              
+              button {
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 1.1rem;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.2s;
+                
+                &.approve-button {
+                  &:hover {
+                    background: rgba(#4CAF50, 0.2);
+                  }
+                }
+                
+                &.deny-button {
+                  &:hover {
+                    background: rgba($error-color, 0.2);
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -569,6 +713,141 @@
           &:hover {
             background: color.scale($error-color, $lightness: -10%);
             transform: translateY(-2px);
+          }
+        }
+        
+        .preferred-champion {
+          margin-top: 1rem;
+          
+          h4 {
+            font-size: 0.9rem;
+            color: $text-color;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+          }
+          
+          .preferred-champion-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba($lol-gold, 0.1);
+            border-radius: 8px;
+            border: 2px solid $lol-gold;
+            position: relative;
+            
+            &.clickable {
+              cursor: pointer;
+              transition: all 0.2s ease;
+              
+              &:hover {
+                background: rgba($lol-gold, 0.2);
+                transform: translateY(-2px);
+                box-shadow: 0 2px 8px rgba($lol-gold, 0.3);
+              }
+              
+              &:active {
+                transform: translateY(0);
+              }
+            }
+            
+            .preferred-champion-image {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              object-fit: cover;
+              border: 2px solid $lol-gold;
+            }
+            
+            .preferred-champion-name {
+              font-weight: 600;
+              color: $lol-gold;
+              flex-grow: 1;
+            }
+            
+            .change-indicator {
+              font-size: 0.9rem;
+              opacity: 0.7;
+              transition: opacity 0.2s;
+            }
+            
+            &.clickable:hover .change-indicator {
+              opacity: 1;
+            }
+          }
+        }
+        
+        .select-champion-button {
+          display: block;
+          margin-top: 0.8rem;
+          background: $lol-gold-10;
+          color: $lol-gold;
+          border: 1px solid $lol-gold;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 0.9rem;
+          transition: all 0.2s;
+          
+          &:hover {
+            background: $lol-gold-20;
+            transform: translateY(-2px);
+          }
+        }
+        
+        .player-champions {
+          margin-top: 0.8rem;
+          
+          h4 {
+            font-size: 0.9rem;
+            color: $text-color;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+          }
+          
+          .champion-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            
+            .champion-icon {
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              overflow: hidden;
+              border: 2px solid $lol-gold;
+              transition: transform 0.2s ease;
+              
+              &.selected {
+                border: 3px solid #0f0;
+                box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+              }
+              
+              &:hover {
+                transform: scale(1.15);
+                z-index: 2;
+              }
+              
+              img.champion-avatar {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+            }
+            
+            .more-champions {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              background: $lol-gold-10;
+              color: $lol-gold;
+              font-size: 0.8rem;
+              font-weight: bold;
+            }
           }
         }
       }
@@ -918,6 +1197,201 @@
 }
 
 @keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Add modal styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.champion-selection-modal {
+  background: $card-bg;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-out;
+  border: 2px solid $lol-gold;
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid $border-color;
+    position: sticky;
+    top: 0;
+    background: $card-bg;
+    z-index: 1;
+    
+    h3 {
+      color: $lol-gold;
+      margin: 0;
+      font-size: 1.4rem;
+      text-transform: uppercase;
+    }
+    
+    .close-modal-button {
+      background: transparent;
+      border: none;
+      color: $text-color-muted;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+      
+      &:hover {
+        color: $error-color;
+      }
+    }
+  }
+  
+  .champions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+    
+    .champion-selection-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: $lol-dark;
+      border-radius: 8px;
+      padding: 0.8rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 2px solid transparent;
+      
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-color: $lol-gold;
+      }
+      
+      .champion-selection-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 0.5rem;
+        border: 2px solid $lol-gold;
+      }
+      
+      .champion-selection-name {
+        color: $text-color;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: center;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+    
+    .no-champions-message {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: $text-color-muted;
+      
+      p {
+        margin: 0.5rem 0;
+        
+        &:first-child {
+          font-weight: 600;
+          color: $text-color;
+        }
+      }
+      
+      .go-to-profile-button {
+        margin-top: 1.5rem;
+        padding: 0.8rem 1.5rem;
+        background: $discord-blue;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+          background: color.scale($discord-blue, $lightness: -10%);
+          transform: translateY(-2px);
+        }
+      }
+    }
+  }
+  
+  .updating-message {
+    text-align: center;
+    padding: 1rem;
+    color: $lol-gold;
+    font-weight: 600;
+    background: rgba($lol-gold, 0.1);
+    margin: 0 1.5rem 1.5rem;
+    border-radius: 4px;
+  }
+  
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid $border-color;
+    margin-top: 0.5rem;
+    
+    .profile-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      text-align: center;
+      
+      span {
+        color: $text-color-muted;
+        font-size: 0.9rem;
+      }
+      
+      .go-to-profile-link {
+        background: transparent;
+        color: $discord-blue;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: underline;
+        transition: all 0.2s;
+        
+        &:hover {
+          color: color.scale($discord-blue, $lightness: 20%);
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(-20px);

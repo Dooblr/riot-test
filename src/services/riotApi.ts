@@ -15,6 +15,7 @@ interface Champion {
   image: {
     full: string;
   };
+  tags: string[]; // Champion roles/tags like "Fighter", "Tank", etc.
 }
 
 export interface ChampionData {
@@ -23,6 +24,7 @@ export interface ChampionData {
   name: string;
   title: string;
   imageUrl: string;
+  roles: string[]; // Added roles field
 }
 
 export interface ServerStatus {
@@ -42,6 +44,19 @@ export interface Incident {
   description: string;
 }
 
+// Common function to get latest version
+const getLatestVersion = async (): Promise<string> => {
+  try {
+    const versionResponse = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    const versions = await versionResponse.json();
+    return versions[0];
+  } catch (error) {
+    console.error('Error fetching versions:', error);
+    // Fallback to a recent version if API fails
+    return '13.24.1';
+  }
+};
+
 export const fetchFreeRotation = async (): Promise<ChampionData[]> => {
   try {
     // Get free rotation champion IDs
@@ -56,9 +71,7 @@ export const fetchFreeRotation = async (): Promise<ChampionData[]> => {
     const rotationData: ChampionInfo = await rotationResponse.json();
     
     // Get champion data from Data Dragon (doesn't require API key)
-    const versionResponse = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
-    const versions = await versionResponse.json();
-    const latestVersion = versions[0];
+    const latestVersion = await getLatestVersion();
     
     const championsResponse = await fetch(
       `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`
@@ -82,12 +95,44 @@ export const fetchFreeRotation = async (): Promise<ChampionData[]> => {
           key: champion.key,
           name: champion.name,
           title: champion.title,
-          imageUrl: `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion.image.full}`
+          imageUrl: `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion.image.full}`,
+          roles: champion.tags || []
         };
       })
       .filter((champion): champion is ChampionData => champion !== null);
   } catch (error) {
     console.error('Error fetching champion rotation:', error);
+    return [];
+  }
+};
+
+// Function to fetch all champions with their roles
+export const fetchAllChampions = async (): Promise<ChampionData[]> => {
+  try {
+    const latestVersion = await getLatestVersion();
+    
+    const championsResponse = await fetch(
+      `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`
+    );
+    
+    if (!championsResponse.ok) {
+      throw new Error(`Failed to fetch champion data: ${championsResponse.statusText}`);
+    }
+    
+    const championsData = await championsResponse.json();
+    const champions = Object.values(championsData.data) as Champion[];
+    
+    // Map all champions to our ChampionData format
+    return champions.map(champion => ({
+      id: champion.id,
+      key: champion.key,
+      name: champion.name,
+      title: champion.title,
+      imageUrl: `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion.image.full}`,
+      roles: champion.tags || []
+    }));
+  } catch (error) {
+    console.error('Error fetching all champions:', error);
     return [];
   }
 };

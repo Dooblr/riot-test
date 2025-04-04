@@ -123,7 +123,7 @@ export default function CreateTeam() {
               id="discordLink"
               value={discordLink}
               onChange={(e) => setDiscordLink(e.target.value)}
-              placeholder="Enter Discord invite link"
+              placeholder="Enter Discord link"
             />
           </div>
           <div className="roles-preview">
