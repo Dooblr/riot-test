@@ -31,7 +31,7 @@
     h2 {
       color: $text-color;
       font-size: 2rem;
-      margin: 0 0 1rem 0;
+      margin: 0 0 0rem 0;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
@@ -53,24 +53,78 @@
       }
     }
 
+    .team-name-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      
+      .edit-name-button {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s;
+        
+        &:hover {
+          background-color: rgba($lol-gold, 0.1);
+        }
+      }
+      
+      .lock-status-indicator {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+        
+        .locked-status, .unlocked-status {
+          transition: all 0.2s ease;
+          
+          &:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+          }
+          
+          svg {
+            fill: $text-color;
+          }
+        }
+        
+        .locked-status svg {
+          fill: $lol-gold;
+        }
+      }
+    }
+
     .team-stats {
       display: flex;
-      gap: 2rem;
-
+      align-items: center;
+      gap: 1.5rem;
+      
       .stat {
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
-
+        align-items: center;
+        
         .label {
+          font-size: 0.8rem;
           color: $text-color-muted;
-          font-size: 0.9rem;
+          margin-bottom: 0.25rem;
         }
-
+        
         .value {
-          color: $text-color;
+          font-weight: 600;
           font-size: 1.1rem;
-          font-weight: bold;
+          color: $text-color;
+        }
+        
+        .protected-status {
+          color: $error-color;
+        }
+        
+        .open-status {
+          color: $success-color;
         }
       }
     }
@@ -556,15 +610,40 @@
     gap: 1rem;
     
     .edit-name-button {
-      background: transparent;
+      background: none;
       border: none;
-      color: $lol-gold;
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
       transition: all 0.2s;
       
       &:hover {
-        transform: translateY(-2px);
+        background-color: rgba($lol-gold, 0.1);
+      }
+    }
+    
+    .lock-status-indicator {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+      
+      .locked-status, .unlocked-status {
+        transition: all 0.2s ease;
+        
+        &:hover {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+        
+        svg {
+          fill: $text-color;
+        }
+      }
+      
+      .locked-status svg {
+        fill: $lol-gold;
       }
     }
   }
@@ -635,113 +714,185 @@
   }
 
   .roles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     margin-bottom: 2rem;
 
     .role-card {
       background: $card-bg;
       border-radius: 8px;
-      padding: 1.5rem;
+      padding: 1.2rem;
       transition: transform 0.2s, box-shadow 0.2s;
-      border: 3px solid transparent;
+      border-left: 5px solid transparent;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100px;
       
       &.user-role {
-        border-color: $lol-gold;
+        position: relative;
+        border-left-color: #28c846;
+        box-shadow: 0 0 5px 1px rgba(40, 200, 70, 0.7);
+        
+        &.top, &.jungle, &.mid, &.adc, &.support {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          
+          h3, .player-info, .role-card-right, .champions-selection {
+            display: flex;
+            align-items: center;
+          }
+          
+          .player-info {
+            justify-content: center;
+          }
+        }
       }
       
       &.filled-role:not(.user-role) {
-        border-color: $discord-blue;
+        border-left-color: $discord-blue;
       }
       
       &.empty-role {
-        border-color: $error-color;
+        border-left-color: $error-color;
       }
 
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
-
+      
       h3 {
-        color: $text-color;
-        font-size: 1.2rem;
-        margin: 0 0 1rem 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
         display: flex;
         align-items: center;
-
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        margin: 0;
+        margin-right: 1.5rem;
+        min-width: 120px;
+        height: 100%;
+        line-height: normal;
+        
         .role-icon {
-          margin-right: 0.5rem;
           font-size: 1.3rem;
+          display: flex;
+          align-items: center;
         }
       }
-
+      
       .player-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        flex-grow: 1;
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        
         .player-name {
+          font-weight: 600;
           color: $lol-gold;
-          font-weight: bold;
+          font-size: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          max-width: 150px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
-
+        
         .your-role-badge {
-          display: inline-block;
-          background: $discord-blue;
-          color: white;
+          background: #28c846;
+          color: $dark-bg;
+          padding: 0.2rem 0.4rem;
+          border-radius: 4px;
           font-size: 0.7rem;
           font-weight: 600;
-          padding: 0.2rem 0.5rem;
-          border-radius: 20px;
-          margin-left: 0.5rem;
-          text-transform: uppercase;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 22px;
         }
         
         .remove-user-button {
-          display: block;
-          background: $error-color;
-          color: white;
-          border: none;
-          padding: 0.3rem 0.8rem;
+          background: transparent;
+          border: 1px solid $error-color;
+          color: $error-color;
+          padding: 0.5rem 1rem;
           border-radius: 4px;
-          cursor: pointer;
-          font-weight: 600;
           font-size: 0.8rem;
-          margin-top: 0.5rem;
-          transition: all 0.2s;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 36px;
+          margin-left: auto;
           
           &:hover {
-            background: color.scale($error-color, $lightness: -10%);
+            background-color: rgba($error-color, 0.1);
             transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba($error-color, 0.3);
+          }
+          
+          &:active {
+            transform: translateY(0);
           }
         }
+      }
+      
+      // Create a container to hold everything after username
+      .role-card-right {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        margin-left: auto;
+      }
+      
+      .champions-selection {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
         
-        .preferred-champion {
-          margin-top: 1rem;
+        .champion-slot {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           
           h4 {
             font-size: 0.9rem;
-            color: $text-color;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            color: $text-color-muted;
+            align-self: center;
           }
           
-          .preferred-champion-display {
+          .preferred-champion-display, .backup-champion-display {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem;
-            background: rgba($lol-gold, 0.1);
-            border-radius: 8px;
-            border: 2px solid $lol-gold;
+            padding: 0.4rem 0.6rem;
+            border-radius: 20px;
             position: relative;
+            width: auto;
+            overflow: hidden;
+            margin-left: 0;
+            height: 36px;
             
             &.clickable {
               cursor: pointer;
               transition: all 0.2s ease;
               
               &:hover {
-                background: rgba($lol-gold, 0.2);
                 transform: translateY(-2px);
                 box-shadow: 0 2px 8px rgba($lol-gold, 0.3);
               }
@@ -751,143 +902,37 @@
               }
             }
             
-            .preferred-champion-image {
-              width: 40px;
-              height: 40px;
+            .preferred-champion-image, .backup-champion-image {
+              width: 28px;
+              height: 28px;
+              min-width: 28px;
               border-radius: 50%;
               object-fit: cover;
-              border: 2px solid $lol-gold;
             }
             
-            .preferred-champion-name {
+            .preferred-champion-name, .backup-champion-name {
               font-weight: 600;
-              color: $lol-gold;
               flex-grow: 1;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              font-size: 0.85rem;
+              max-width: 100px;
+              line-height: 1;
             }
             
             .change-indicator {
               font-size: 0.9rem;
               opacity: 0.7;
               transition: opacity 0.2s;
+              margin-left: 0.25rem;
+              display: flex;
+              align-items: center;
             }
             
             &.clickable:hover .change-indicator {
               opacity: 1;
             }
-          }
-        }
-        
-        .select-champion-button {
-          display: block;
-          margin-top: 0.8rem;
-          background: $lol-gold-10;
-          color: $lol-gold;
-          border: 1px solid $lol-gold;
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 0.9rem;
-          transition: all 0.2s;
-          
-          &:hover {
-            background: $lol-gold-20;
-            transform: translateY(-2px);
-          }
-        }
-        
-        .player-champions {
-          margin-top: 0.8rem;
-          
-          h4 {
-            font-size: 0.9rem;
-            color: $text-color;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-          }
-          
-          .champion-icons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.3rem;
-            
-            .champion-icon {
-              width: 30px;
-              height: 30px;
-              border-radius: 50%;
-              overflow: hidden;
-              border: 2px solid $lol-gold;
-              transition: transform 0.2s ease;
-              
-              &.selected {
-                border: 3px solid #0f0;
-                box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-              }
-              
-              &:hover {
-                transform: scale(1.15);
-                z-index: 2;
-              }
-              
-              img.champion-avatar {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-              }
-            }
-            
-            .more-champions {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 30px;
-              height: 30px;
-              border-radius: 50%;
-              background: $lol-gold-10;
-              color: $lol-gold;
-              font-size: 0.8rem;
-              font-weight: bold;
-            }
-          }
-        }
-      }
-
-      .role-open {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.75rem;
-        color: $text-color-muted;
-
-        .join-button, .select-button {
-          background: $lol-gold;
-          color: $dark-bg;
-          border: none;
-          padding: 0.5rem 1.5rem;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: bold;
-          transition: all 0.2s;
-          width: 100%;
-          max-width: 120px;
-
-          &:hover:not(:disabled) {
-            background: color.scale($lol-gold, $lightness: 10%);
-            transform: translateY(-2px);
-          }
-
-          &:disabled {
-            background: $text-color-muted;
-            cursor: not-allowed;
-            opacity: 0.7;
-          }
-        }
-
-        .select-button {
-          background: $discord-blue;
-          
-          &:hover:not(:disabled) {
-            background: color.scale($discord-blue, $lightness: -10%);
           }
         }
       }
@@ -1198,106 +1243,127 @@
   .team-password-container {
     background-color: $card-bg;
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: 0;
     margin-bottom: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border: 3px solid transparent;
+    position: relative;
     
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40px;
+      height: 40px;
+      background-color: transparent;
+      border-radius: 0 8px 0 8px;
+      z-index: 1;
+      transition: all 0.3s ease;
+    }
+    
+    &.protected {
+      border-color: $error-color;
       
-      h3 {
-        color: $text-color;
-        font-size: 1.3rem;
-        margin: 0;
+      &::before {
+        background-color: $error-color;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 24px;
       }
+    }
+    
+    &.open {
+      border-color: $success-color;
       
-      .edit-button {
-        background: none;
-        border: none;
-        color: $lol-gold;
-        font-size: 1rem;
-        cursor: pointer;
-        padding: 0.5rem 1rem;
-        transition: color 0.2s;
-        
-        &:hover {
-          color: color.scale($lol-gold, $lightness: 20%);
-        }
+      &::before {
+        background-color: $success-color;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 24px;
       }
+    }
+    
+    &:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
     
     .password-edit {
       background-color: rgba($lol-dark, 0.3);
-      border-radius: 4px;
+      border-radius: 8px;
       padding: 1.5rem;
-      margin-bottom: 1rem;
+      border: 1px solid rgba($lol-gold, 0.2);
+      animation: fadeIn 0.3s ease;
       
-      .password-protection-toggle {
+      h4 {
+        color: $text-color;
+        font-size: 1.2rem;
+        margin: 0 0 1.2rem 0;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
         
-        input[type="checkbox"] {
-          width: 18px;
-          height: 18px;
-          cursor: pointer;
-          accent-color: $lol-gold;
+        &::before {
+          content: '🔒';
+          margin-right: 0.5rem;
         }
-        
-        label {
-          margin: 0;
-          cursor: pointer;
-          color: $text-color;
-          font-weight: 500;
+      }
+      
+      .unlock-prompt {
+        h4::before {
+          content: '🔑';
         }
       }
       
       .password-input-section {
-        margin-top: 1rem;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .password-input {
+        width: 100%;
+        max-width: 400px;
+        padding: 0.75rem 1rem;
+        background-color: $input-bg;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        color: $text-color;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        font-family: inherit;
         
-        .password-input {
-          width: 100%;
-          max-width: 400px;
-          padding: 0.75rem;
-          background-color: $input-bg;
-          border: 1px solid $lol-gold-30;
-          border-radius: 4px;
-          color: $text-color;
-          font-size: 1rem;
-          margin-bottom: 0.5rem;
-          
-          &:focus {
-            outline: none;
-            border-color: $lol-gold;
-            box-shadow: 0 0 5px rgba($lol-gold, 0.2);
-          }
+        &:focus {
+          outline: none;
+          border-color: $lol-gold;
+          box-shadow: 0 0 5px rgba($lol-gold, 0.3);
         }
-        
-        .password-hint {
-          font-size: 0.85rem;
-          color: $text-color-muted;
-          margin-top: 0.25rem;
-          font-style: italic;
-        }
+      }
+      
+      .password-hint {
+        font-size: 0.9rem;
+        color: $text-color-muted;
+        margin-top: 0.5rem;
+        font-style: italic;
+        padding-left: 0.5rem;
+        border-left: 3px solid rgba($lol-gold, 0.5);
       }
       
       .password-error {
         color: $error-color;
         background-color: rgba($error-color, 0.1);
-        padding: 0.75rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        border-left: 4px solid $error-color;
       }
       
       .password-actions {
         display: flex;
         justify-content: flex-start;
+        gap: 1rem;
         
         .save-password-button {
           background-color: $lol-gold;
@@ -1312,33 +1378,206 @@
           &:hover {
             background-color: color.scale($lol-gold, $lightness: -10%);
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
           }
           
           &:active {
             transform: translateY(0);
+          }
+          
+          &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+          }
+        }
+        
+        .cancel-password-button {
+          background-color: transparent;
+          color: $text-color-muted;
+          border: 1px solid $border-color;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          
+          &:hover {
+            background-color: rgba($text-color-muted, 0.1);
+            transform: translateY(-2px);
+          }
+          
+          &:active {
+            transform: translateY(0);
+          }
+          
+          &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
           }
         }
       }
     }
     
     .password-status {
-      padding: 1rem;
+      padding: 1.25rem;
       background-color: rgba($lol-dark, 0.2);
-      border-radius: 4px;
+      border-radius: 0;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      position: relative;
+      
+      &:hover {
+        background-color: rgba($lol-dark, 0.3);
+      }
       
       .protected, .open {
         display: inline-flex;
         align-items: center;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        gap: 0.5rem;
+        font-weight: 600;
+        
+        &::before {
+          font-size: 1.3rem;
+        }
       }
       
       .protected {
-        color: #e74c3c;
+        color: $error-color;
+        
+        &::before {
+          content: '🔒';
+        }
       }
       
       .open {
-        color: #2ecc71;
+        color: $success-color;
+        
+        &::before {
+          content: '🔓';
+        }
       }
+    }
+    
+    // Lock status indicator that appears in the team header
+    .lock-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      z-index: 2;
+      
+      &.locked svg {
+        fill: $error-color;
+      }
+      
+      &.unlocked svg {
+        fill: $success-color;
+      }
+    }
+  }
+
+  .team-actions {
+    margin-top: 2rem;
+    border-top: 1px solid $lol-gold-20;
+    padding-top: 1.5rem;
+    
+    .login-prompt {
+      text-align: center;
+      
+      p {
+        color: $text-color-muted;
+        margin-bottom: 1rem;
+      }
+      
+      .login-button {
+        background-color: $discord-blue;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+          background-color: color.scale($discord-blue, $lightness: -10%);
+          transform: translateY(-2px);
+        }
+      }
+    }
+    
+    .owner-actions, .member-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      
+      button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .edit-button {
+        background-color: rgba($lol-gold, 0.1);
+        color: $lol-gold;
+        border: 1px solid $lol-gold;
+        
+        &:hover {
+          background-color: rgba($lol-gold, 0.2);
+          transform: translateY(-2px);
+        }
+      }
+      
+      .delete-button {
+        background-color: rgba($error-color, 0.1);
+        color: $error-color;
+        border: 1px solid $error-color;
+        
+        &:hover {
+          background-color: rgba($error-color, 0.2);
+          transform: translateY(-2px);
+        }
+      }
+      
+      .leave-role-button {
+        background-color: rgba($error-color, 0.1);
+        color: $error-color;
+        border: 1px solid $error-color;
+        
+        &:hover {
+          background-color: rgba($error-color, 0.2);
+          transform: translateY(-2px);
+        }
+      }
+    }
+    
+    .open-roles-info, .full-team-info {
+      text-align: center;
+      padding: 1rem;
+      border-radius: 4px;
+      
+      p {
+        color: $text-color;
+        font-style: italic;
+      }
+    }
+    
+    .open-roles-info {
+      background-color: rgba($success-color, 0.1);
+      border: 1px solid rgba($success-color, 0.3);
+    }
+    
+    .full-team-info {
+      background-color: rgba($lol-gold, 0.1);
+      border: 1px solid rgba($lol-gold, 0.3);
     }
   }
 }
@@ -1501,37 +1740,62 @@
   }
   
   .modal-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid $border-color;
-    margin-top: 0.5rem;
+    padding: 1rem;
+    border-top: 1px solid $lol-gold-20;
     
     .profile-link {
       display: flex;
       align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
       justify-content: center;
-      gap: 0.8rem;
-      flex-wrap: wrap;
-      text-align: center;
       
       span {
         color: $text-color-muted;
-        font-size: 0.9rem;
       }
       
       .go-to-profile-link {
-        background: transparent;
-        color: $discord-blue;
+        background: none;
         border: none;
-        padding: 0.5rem;
+        color: $lol-gold;
         cursor: pointer;
-        font-weight: 600;
-        font-size: 0.9rem;
         text-decoration: underline;
-        transition: all 0.2s;
         
         &:hover {
-          color: color.scale($discord-blue, $lightness: 20%);
-          transform: translateY(-1px);
+          color: color.scale($lol-gold, $lightness: 20%);
+        }
+      }
+    }
+    
+    .selection-type-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      
+      .toggle-button {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+        
+        &:not(.active) {
+          background: transparent;
+          border: 1px solid $lol-gold-20;
+          color: $text-color-muted;
+          
+          &:hover {
+            background: rgba($lol-gold, 0.1);
+            border-color: $lol-gold;
+            color: $lol-gold;
+          }
+        }
+        
+        &.active {
+          background: $lol-gold;
+          border: 1px solid $lol-gold;
+          color: $lol-dark;
         }
       }
     }
@@ -1546,5 +1810,348 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 5px 1px rgba(40, 200, 70, 0.7); }
+  50% { box-shadow: 0 0 10px 3px rgba(40, 200, 70, 0.9); }
+  100% { box-shadow: 0 0 5px 1px rgba(40, 200, 70, 0.7); }
+}
+
+.champions-selection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+  
+  .champion-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    h4 {
+      font-size: 0.9rem;
+      margin: 0 0 0.5rem 0;
+      color: $text-color-muted;
+      align-self: center;
+    }
+    
+    .preferred-champion-display, .backup-champion-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 20px;
+      position: relative;
+      width: auto;
+      overflow: hidden;
+      margin-left: 0;
+      height: 36px;
+      
+      &.clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 2px 8px rgba($lol-gold, 0.3);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+      
+      .preferred-champion-image, .backup-champion-image {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      
+      .preferred-champion-name, .backup-champion-name {
+        font-weight: 600;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.85rem;
+        max-width: 100px;
+        line-height: 1;
+      }
+      
+      .change-indicator {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        margin-left: 0.25rem;
+        display: flex;
+        align-items: center;
+      }
+      
+      &.clickable:hover .change-indicator {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.role-open {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  color: $text-color-muted;
+  
+  .join-button, .select-button {
+    background: $lol-gold;
+    color: $dark-bg;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    width: auto;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover:not(:disabled) {
+      background: color.scale($lol-gold, $lightness: 10%);
+      transform: translateY(-2px);
+    }
+    
+    &:disabled {
+      background: $text-color-muted;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+  
+  .select-button {
+    background: $discord-blue;
+    
+    &:hover:not(:disabled) {
+      background: color.scale($discord-blue, $lightness: -10%);
+    }
+  }
+}
+
+.password-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.password-modal {
+  background-color: $card-bg;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  padding: 0;
+  animation: slideIn 0.3s ease;
+  
+  &.protected {
+    border: 2px solid $lol-gold;
+  }
+  
+  &.open {
+    border: 2px solid $discord-blue;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid $border-color;
+    
+    h3 {
+      margin: 0;
+      color: $text-color;
+    }
+    
+    .close-modal-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: $text-color;
+      cursor: pointer;
+      
+      &:hover {
+        color: $error-color;
+      }
+    }
+  }
+  
+  .modal-content {
+    padding: 20px;
+  }
+  
+  .password-edit {
+    h4 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+    
+    .password-input-section {
+      margin-bottom: 15px;
+    }
+    
+    .password-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid $border-color;
+      background-color: $input-bg;
+      color: $text-color;
+      font-size: 16px;
+      margin-bottom: 10px;
+      
+      &:focus {
+        border-color: $lol-gold;
+        outline: none;
+      }
+    }
+    
+    .password-hint {
+      font-size: 14px;
+      color: $text-color-muted;
+      margin-bottom: 15px;
+    }
+    
+    .password-error {
+      color: $error-color;
+      margin-bottom: 15px;
+      padding: 8px;
+      background-color: rgba(255, 50, 50, 0.1);
+      border-radius: 4px;
+    }
+    
+    .password-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      
+      button {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+      
+      .save-password-button {
+        background-color: $lol-gold;
+        color: $lol-dark;
+        border: none;
+        
+        &:hover:not(:disabled) {
+          background-color: darken($lol-gold, 10%);
+        }
+      }
+      
+      .cancel-password-button {
+        background-color: transparent;
+        color: $text-color;
+        border: 1px solid $border-color;
+        
+        &:hover:not(:disabled) {
+          background-color: rgba(255, 255, 255, 0.05);
+        }
+      }
+    }
+  }
+  
+  .password-status {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .protected {
+      color: $lol-gold;
+      font-weight: 600;
+    }
+    
+    .open {
+      color: $discord-blue;
+      font-weight: 600;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Make sure the "Remove" button in role cards matches other red buttons
+.role-card-right {
+  .remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    background: transparent;
+    color: $error-color;
+    border: 1px solid $error-color;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba($error-color, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba($error-color, 0.3);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
   }
 } 

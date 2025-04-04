@@ -1,4 +1,4 @@
-const API_KEY = 'RGAPI-c503afd6-43ef-4d24-8d46-5ed318649882';
+const API_KEY = 'RGAPI-a481a9af-9630-45d9-b02f-ae2a328bd9a7';
 const REGION = 'na1';
 
 interface ChampionInfo {

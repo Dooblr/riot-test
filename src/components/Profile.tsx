@@ -185,6 +185,11 @@ const Profile: React.FC = () => {
 
       setSuccess('Profile updated successfully');
       toast.success('Profile updated successfully!');
+      
+      // Navigate to teams page after successful update
+      setTimeout(() => {
+        navigate('/teams');
+      }, 1500); // Give time for the toast to be visible
     } catch (err) {
       console.error('Error updating profile:', err);
       setError('Failed to update profile');

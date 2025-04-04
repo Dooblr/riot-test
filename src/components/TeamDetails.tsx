@@ -15,6 +15,7 @@ interface Team {
     filled: boolean;
     userId?: string;
     preferredChampion?: string;
+    backupChampion?: string;
   }[];
   members: {
     userId: string;
@@ -26,7 +27,7 @@ interface Team {
   discordAccess?: string[];
   discordRequests?: string[];
   passwordProtected?: boolean;
-  password?: string;
+  password?: string | null;
 }
 
 interface RoleUser {
@@ -92,6 +93,7 @@ export default function TeamDetails() {
   const [isSelectingChampion, setIsSelectingChampion] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [updatingChampion, setUpdatingChampion] = useState(false);
+  const [championSelectionType, setChampionSelectionType] = useState<'preferred' | 'backup'>('preferred');
   const [requestingDiscord, setRequestingDiscord] = useState(false);
   const [discordRequestSuccess, setDiscordRequestSuccess] = useState(false);
   const [pendingDiscordRequests, setPendingDiscordRequests] = useState<string[]>([]);
@@ -99,6 +101,8 @@ export default function TeamDetails() {
   const [password, setPassword] = useState('');
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const fetchUserChampions = async (userId: string) => {
     try {
@@ -244,10 +248,13 @@ export default function TeamDetails() {
 
   useEffect(() => {
     if (team) {
-      setPasswordProtected(team.passwordProtected || false);
-      setPassword(team.password || '');
+      setPasswordProtected(!!team.passwordProtected);
+      if (team.passwordProtected && !isEditingPassword) {
+        // Don't overwrite password field if user is currently editing it
+        setPassword(team.password || '');
+      }
     }
-  }, [team]);
+  }, [team?.passwordProtected, team?.password]);
 
   const getRoleUser = (userId: string | null) => {
     if (!userId) return null;
@@ -576,25 +583,31 @@ export default function TeamDetails() {
     }
   };
 
-  const handleRemoveUser = async (roleIndex: number) => {
+  const handleRemoveUser = async (roleName: string) => {
     if (!user || !team || !isTeamOwner()) {
       return;
     }
 
     try {
       const updatedRoles = [...team.roles];
+      const roleIndex = updatedRoles.findIndex(r => r.name === roleName);
+      
+      if (roleIndex === -1) return;
+      
       const userToRemove = updatedRoles[roleIndex].userId;
       
       if (!userToRemove) return;
       
+      // Update the role to be empty instead of removing it
+      // This ensures we maintain all 5 standard roles
       updatedRoles[roleIndex] = {
         ...updatedRoles[roleIndex],
         filled: false,
-        userId: undefined
+        userId: undefined // Using undefined instead of null to fix type issues
       };
 
       const memberToRemove = team.members.find(m => 
-        m.userId === userToRemove && m.role === updatedRoles[roleIndex].name
+        m.userId === userToRemove && m.role === roleName
       );
 
       const teamRef = doc(db, 'teams', team.id);
@@ -610,7 +623,7 @@ export default function TeamDetails() {
         if (!prevTeam) return null;
         
         const updatedMembers = prevTeam.members.filter(m => 
-          !(m.userId === userToRemove && m.role === updatedRoles[roleIndex].name)
+          !(m.userId === userToRemove && m.role === roleName)
         );
         
         return {
@@ -621,8 +634,59 @@ export default function TeamDetails() {
       });
 
     } catch (err) {
-      console.error('Error removing user:', err);
+      console.error('Error removing user from role:', err);
       setError('Failed to remove user from team');
+    }
+  };
+
+  const handleLeaveTakeTool = async () => {
+    if (!user || !team) return;
+    
+    try {
+      const roleIndex = team.roles.findIndex(r => r.userId === user.uid);
+      if (roleIndex === -1) {
+        setError('You are not currently in any role');
+        return;
+      }
+      
+      const currentRole = team.roles[roleIndex];
+      
+      const updatedRoles = [...team.roles];
+      updatedRoles[roleIndex] = {
+        name: currentRole.name,
+        filled: false
+      };
+      
+      const memberToRemove = team.members.find(m => 
+        m.userId === user.uid && m.role === currentRole.name
+      );
+      
+      const teamRef = doc(db, 'teams', team.id);
+      await updateDoc(teamRef, { roles: updatedRoles });
+      
+      if (memberToRemove) {
+        await updateDoc(teamRef, {
+          members: arrayRemove(memberToRemove)
+        });
+      }
+      
+      setTeam(prevTeam => {
+        if (!prevTeam) return null;
+        
+        const updatedMembers = prevTeam.members.filter(m => 
+          !(m.userId === user.uid && m.role === currentRole.name)
+        );
+        
+        return {
+          ...prevTeam,
+          roles: updatedRoles,
+          members: updatedMembers
+        };
+      });
+      
+    } catch (err) {
+      console.error('Error leaving role:', err);
+      setError('Failed to leave role');
     }
   };
 
@@ -653,10 +717,19 @@ export default function TeamDetails() {
       }
       
       const updatedRoles = [...team.roles];
-      updatedRoles[roleIndex] = {
-        ...updatedRoles[roleIndex],
-        preferredChampion: championId
-      };
+      
+      // Update the appropriate champion type (preferred or backup)
+      if (championSelectionType === 'preferred') {
+        updatedRoles[roleIndex] = {
+          ...updatedRoles[roleIndex],
+          preferredChampion: championId
+        };
+      } else {
+        updatedRoles[roleIndex] = {
+          ...updatedRoles[roleIndex],
+          backupChampion: championId
+        };
+      }
       
       const teamRef = doc(db, 'teams', team.id);
       await updateDoc(teamRef, { roles: updatedRoles });
@@ -672,7 +745,7 @@ export default function TeamDetails() {
       setIsSelectingChampion(false);
       setSelectedRole(null);
     } catch (err) {
-      console.error('Error updating preferred champion:', err);
+      console.error('Error updating champion preference:', err);
       setError('Failed to update champion preference');
     } finally {
       setUpdatingChampion(false);
@@ -687,6 +760,19 @@ export default function TeamDetails() {
     
     if (userChampions[roleUserId]) {
       return userChampions[roleUserId].find(champion => champion.id === role.preferredChampion);
+    }
+    
+    return null;
+  };
+
+  const getBackupChampion = (roleUserId: string | undefined, roleName: string) => {
+    if (!team || !roleUserId) return null;
+    
+    const role = team.roles.find(r => r.name === roleName && r.userId === roleUserId);
+    if (!role || !role.backupChampion) return null;
+    
+    if (userChampions[roleUserId]) {
+      return userChampions[roleUserId].find(champion => champion.id === role.backupChampion);
     }
     
     return null;
@@ -808,35 +894,95 @@ export default function TeamDetails() {
   };
 
   const handleUpdatePassword = async () => {
+    if (!password && password !== '') {
+      setPasswordError("Please enter a valid password");
+      return;
+    }
+    
     if (!teamId || !isTeamOwner()) return;
     
     try {
-      setPasswordError(null);
+      setIsUpdatingPassword(true);
       
+      // If user is trying to protect the team, validate password
       if (passwordProtected && !password.trim()) {
         setPasswordError("Password cannot be empty when protection is enabled");
+        setIsUpdatingPassword(false);
         return;
       }
       
-      const teamRef = doc(db, 'teams', teamId);
-      await updateDoc(teamRef, {
-        passwordProtected,
-        password: passwordProtected ? password : null,
-      });
+      // Note: We've moved the password verification to the button's onClick handler
+      // so we don't need to check it here again when unlocking
       
-      setIsEditingPassword(false);
-      setTeam(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          passwordProtected,
-          password: passwordProtected ? password : null,
-        };
-      });
+      const teamRef = doc(db, 'teams', teamId);
+      
+      // Create an update object
+      const updateData: {
+        passwordProtected: boolean;
+        password: string | null;
+      } = {
+        passwordProtected: passwordProtected,
+        password: passwordProtected ? password : null
+      };
+      
+      // Update document in Firebase
+      await updateDoc(teamRef, updateData);
+      
+      // Define a function to poll and verify the update was successful
+      const verifyPasswordUpdate = async (maxAttempts = 5, delayMs = 500) => {
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+          attempts++;
+          
+          // Wait for a short delay
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          
+          // Get the latest document from Firebase
+          const latestDoc = await getDoc(teamRef);
+          
+          if (latestDoc.exists()) {
+            const latestData = latestDoc.data();
+            
+            // Check if the password protection status matches what we expect
+            if (latestData.passwordProtected === passwordProtected) {
+              // Success - update the local state
+              const teamData = {
+                id: latestDoc.id,
+                ...latestData,
+                createdAt: latestData.createdAt?.toDate()
+              } as Team;
+              
+              setTeam(teamData);
+              
+              // Alert users about password status change
+              if (passwordProtected) {
+                alert('Team is now password protected. Only players with the password can join.');
+              } else {
+                alert('Team is now open for anyone to join.');
+              }
+              
+              setIsEditingPassword(false);
+              setIsPasswordModalOpen(false); // Also close the modal when done
+              return true;
+            }
+          }
+          
+          console.log(`Password update verification attempt ${attempts} failed, retrying...`);
+        }
+        
+        // If we reached here, verification failed
+        throw new Error('Failed to verify password update in Firebase');
+      };
+      
+      // Call the polling function to verify the update
+      await verifyPasswordUpdate();
       
     } catch (err) {
       console.error('Error updating password:', err);
-      setPasswordError('Failed to update password settings');
+      setPasswordError('Failed to update password settings. Please try again.');
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -903,6 +1049,31 @@ export default function TeamDetails() {
                 ✏️
               </button>
             )}
+            <div className="lock-status-indicator">
+              {team.passwordProtected ? (
+                <span 
+                  className="locked-status" 
+                  title="This team is password protected"
+                  onClick={() => isTeamOwner() && setIsPasswordModalOpen(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </span>
+              ) : (
+                <span 
+                  className="unlocked-status" 
+                  title="This team is open to join"
+                  onClick={() => isTeamOwner() && setIsPasswordModalOpen(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
+                  </svg>
+                </span>
+              )}
+            </div>
           </div>
         )}
         
@@ -920,6 +1091,12 @@ export default function TeamDetails() {
             <span className="label">Created</span>
             <span className="value">
               {team.createdAt.toLocaleDateString()}
+            </span>
+          </div>
+          <div className="stat">
+            <span className="label">Status</span>
+            <span className={`value ${team.passwordProtected ? 'protected-status' : 'open-status'}`}>
+              {team.passwordProtected ? 'Password Protected' : 'Open to Join'}
             </span>
           </div>
         </div>
@@ -1111,66 +1288,119 @@ export default function TeamDetails() {
         )}
       </div>
 
-      {isTeamOwner() && (
-        <div className="team-password-container">
-          <div className="section-header">
-            <h3>Password Protection</h3>
-            <button
-              onClick={() => setIsEditingPassword(!isEditingPassword)} 
-              className="edit-button"
-            >
-              {isEditingPassword ? 'Cancel' : 'Edit'}
-            </button>
-          </div>
-          
-          {isEditingPassword ? (
-            <div className="password-edit">
-              <div className="password-protection-toggle">
-                <input
-                  type="checkbox"
-                  id="passwordProtected"
-                  checked={passwordProtected}
-                  onChange={() => setPasswordProtected(!passwordProtected)}
-                />
-                <label htmlFor="passwordProtected">Password protect this team</label>
-              </div>
-              
-              {passwordProtected && (
-                <div className="password-input-section">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password"
-                    className="password-input"
-                    minLength={4}
-                  />
-                  <div className="password-hint">
-                    Players will need this password to join your team
-                  </div>
+      {isTeamOwner() && isPasswordModalOpen && (
+        <div className="password-modal-overlay" onClick={() => setIsPasswordModalOpen(false)}>
+          <div className={`password-modal ${team.passwordProtected ? 'protected' : 'open'}`} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Password Protection</h3>
+              <button className="close-modal-button" onClick={() => setIsPasswordModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-content">
+              {isEditingPassword ? (
+                <div className="password-edit">
+                  {team.passwordProtected ? (
+                    <>
+                      <div className="unlock-prompt">
+                        <h4>Enter current password to unlock team</h4>
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter existing password"
+                          className="password-input"
+                          minLength={4}
+                        />
+                        {passwordError && <div className="password-error">{passwordError}</div>}
+                        <div className="password-actions">
+                          <button 
+                            onClick={() => {
+                              if (password === team.password) {
+                                // If password matches, immediately set the state for protected status
+                                setPasswordProtected(false);
+                                // Then process the update
+                                handleUpdatePassword();
+                              } else {
+                                setPasswordError("Incorrect password. Please try again.");
+                              }
+                            }}
+                            className="save-password-button"
+                            disabled={isUpdatingPassword}
+                          >
+                            {isUpdatingPassword ? 'Verifying...' : 'Verify & Unlock Team'}
+                          </button>
+                          <button
+                            onClick={() => setIsEditingPassword(false)}
+                            className="cancel-password-button"
+                            disabled={isUpdatingPassword}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h4>Set a password to protect your team</h4>
+                      <div className="password-input-section">
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter new password"
+                          className="password-input"
+                          minLength={4}
+                          disabled={isUpdatingPassword}
+                        />
+                        <div className="password-hint">
+                          Players will need this password to join your team
+                        </div>
+                      </div>
+                      
+                      {passwordError && <div className="password-error">{passwordError}</div>}
+                      
+                      <div className="password-actions">
+                        <button 
+                          onClick={() => {
+                            setPasswordProtected(true);
+                            handleUpdatePassword();
+                          }}
+                          className="save-password-button"
+                          disabled={isUpdatingPassword}
+                        >
+                          {isUpdatingPassword ? 'Protecting...' : 'Protect Team'}
+                        </button>
+                        <button
+                          onClick={() => setIsEditingPassword(false)}
+                          className="cancel-password-button"
+                          disabled={isUpdatingPassword}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div 
+                  className="password-status"
+                  onClick={() => {
+                    setIsEditingPassword(true);
+                    // Reset password field when opening the password editor
+                    setPassword('');
+                    setPasswordError(null);
+                  }}
+                >
+                  {team.passwordProtected ? (
+                    <span className="protected">Password Protected - Click to Change</span>
+                  ) : (
+                    <span className="open">Open Team - Click to Add Password</span>
+                  )}
                 </div>
               )}
-              
-              {passwordError && <div className="password-error">{passwordError}</div>}
-              
-              <div className="password-actions">
-                <button 
-                  onClick={handleUpdatePassword} 
-                  className="save-password-button"
-                >
-                  Save Password Settings
-                </button>
-              </div>
             </div>
-          ) : (
-            <div className="password-status">
-              {team.passwordProtected ? (
-                <span className="protected">🔒 This team is password protected</span>
-              ) : (
-                <span className="open">🔓 This team is open to join</span>
-              )}
-            </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -1179,6 +1409,7 @@ export default function TeamDetails() {
           const isUserRole = role.userId === user?.uid;
           const isFilled = role.filled;
           const preferredChampion = getPreferredChampion(role.userId, role.name);
+          const backupChampion = getBackupChampion(role.userId, role.name);
           
           return (
             <div 
@@ -1189,106 +1420,127 @@ export default function TeamDetails() {
                 <span className="role-icon">{roleIcons[role.name] || '👤'}</span>
                 {role.name}
               </h3>
-              {role.filled ? (
-                <div className="player-info">
-                  <span className="player-name">
-                    {getRoleUser(role.userId)?.username || 'Unknown'}
-                  </span>
-                  {role.userId === user?.uid && (
-                    <span className="your-role-badge">You</span>
-                  )}
-                  {isTeamOwner() && role.userId !== user?.uid && (
-                    <button 
-                      onClick={() => handleRemoveUser(team.roles.findIndex(r => r.name === role.name))}
-                      className="remove-user-button"
-                      title="Remove user from role"
-                    >
-                      Remove
-                    </button>
-                  )}
-                  
-                  {preferredChampion && (
-                    <div className="preferred-champion">
-                      <h4>Selected Champion:</h4>
-                      <div 
-                        className={`preferred-champion-display ${role.userId === user?.uid ? 'clickable' : ''}`}
-                        onClick={() => {
-                          if (role.userId === user?.uid) {
-                            setSelectedRole(role.name);
-                            setIsSelectingChampion(true);
-                          }
-                        }}
-                        title={role.userId === user?.uid ? "Click to change champion" : ""}
-                      >
-                        <img 
-                          src={preferredChampion.imageUrl} 
-                          alt={preferredChampion.name} 
-                          className="preferred-champion-image"
-                        />
-                        <span className="preferred-champion-name">{preferredChampion.name}</span>
-                        {role.userId === user?.uid && (
-                          <span className="change-indicator">✏️</span>
-                        )}
-                      </div>
+              
+              {isFilled ? (
+                <>
+                  <div className="player-info">
+                    <div className="player-name">
+                      {getRoleUser(role.userId)?.username || 'Unknown'}
+                      {isUserRole && <span className="your-role-badge">You</span>}
                     </div>
-                  )}
+                  </div>
                   
-                  {role.userId === user?.uid && !preferredChampion && (
-                    <button 
-                      onClick={() => {
-                        setSelectedRole(role.name);
-                        setIsSelectingChampion(true);
-                      }}
-                      className="select-champion-button"
-                    >
-                      Select Champion
-                    </button>
-                  )}
-                  
-                  {/* {role.userId && userChampions[role.userId]?.length > 0 && (
-                    <div className="player-champions">
-                      <h4>Champion Pool:</h4>
-                      <div className="champion-icons">
-                        {userChampions[role.userId].slice(0, 5).map(champion => (
+                  <div className="role-card-right">
+                    <div className="champions-selection">
+                      {/* Preferred Champion */}
+                      <div className="champion-slot">
+                        <h4>Preferred:</h4>
+                        {preferredChampion ? (
                           <div 
-                            key={champion.id} 
-                            className={`champion-icon ${role.preferredChampion === champion.id ? 'selected' : ''}`} 
-                            title={champion.name}
+                            className={`preferred-champion-display ${role.userId === user?.uid ? 'clickable' : ''}`}
+                            onClick={() => {
+                              if (role.userId === user?.uid) {
+                                setSelectedRole(role.name);
+                                setChampionSelectionType('preferred');
+                                setIsSelectingChampion(true);
+                              }
+                            }}
+                            title={role.userId === user?.uid ? "Click to change preferred champion" : ""}
                           >
                             <img 
-                              src={champion.imageUrl} 
-                              alt={champion.name} 
-                              className="champion-avatar"
+                              src={preferredChampion.imageUrl} 
+                              alt={preferredChampion.name} 
+                              className="preferred-champion-image"
                             />
+                            <span className="preferred-champion-name">{preferredChampion.name}</span>
+                            {role.userId === user?.uid && (
+                              <span className="change-indicator">✏️</span>
+                            )}
                           </div>
-                        ))}
-                        {userChampions[role.userId].length > 5 && (
-                          <div className="more-champions">
-                            +{userChampions[role.userId].length - 5}
+                        ) : role.userId === user?.uid && (
+                          <button 
+                            onClick={() => {
+                              setSelectedRole(role.name);
+                              setChampionSelectionType('preferred');
+                              setIsSelectingChampion(true);
+                            }}
+                            className="select-champion-button"
+                          >
+                            Select Preferred
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* Backup Champion */}
+                      <div className="champion-slot">
+                        <h4>Backup:</h4>
+                        {backupChampion ? (
+                          <div 
+                            className={`backup-champion-display ${role.userId === user?.uid ? 'clickable' : ''}`}
+                            onClick={() => {
+                              if (role.userId === user?.uid) {
+                                setSelectedRole(role.name);
+                                setChampionSelectionType('backup');
+                                setIsSelectingChampion(true);
+                              }
+                            }}
+                            title={role.userId === user?.uid ? "Click to change backup champion" : ""}
+                          >
+                            <img 
+                              src={backupChampion.imageUrl} 
+                              alt={backupChampion.name} 
+                              className="backup-champion-image"
+                            />
+                            <span className="backup-champion-name">{backupChampion.name}</span>
+                            {role.userId === user?.uid && (
+                              <span className="change-indicator">✏️</span>
+                            )}
                           </div>
+                        ) : role.userId === user?.uid && (
+                          <button 
+                            onClick={() => {
+                              setSelectedRole(role.name);
+                              setChampionSelectionType('backup');
+                              setIsSelectingChampion(true);
+                            }}
+                            className="select-champion-button"
+                          >
+                            Select Backup
+                          </button>
                         )}
                       </div>
                     </div>
-                  )} */}
-                </div>
+                    
+                    {isTeamOwner() && role.userId !== user?.uid && (
+                      <button 
+                        onClick={() => handleRemoveUser(role.name)} 
+                        className="remove-user-button"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </>
               ) : (
-                <div className="role-open">
-                  {!isUserInAnyRole(user?.uid) ? (
-                    <button 
-                      onClick={() => handleJoinRole(role.name)}
-                      className="join-button"
-                    >
-                      Join
-                    </button>
-                  ) : user && currentUserRole ? (
-                    <button 
-                      onClick={() => handleSwapRole(role.name)}
-                      className="select-button"
-                      disabled={isSwapping}
-                    >
-                      {isSwapping ? 'Swapping...' : 'Select'}
-                    </button>
-                  ) : null}
+                <div className="role-card-right">
+                  <div className="role-open">
+                    {!isUserInAnyRole(user?.uid) ? (
+                      <button 
+                        onClick={() => handleJoinRole(role.name)}
+                        className="join-button"
+                      >
+                        Join
+                      </button>
+                    ) : user && currentUserRole ? (
+                      <button 
+                        onClick={() => handleSwapRole(role.name)}
+                        className="select-button"
+                        disabled={isSwapping}
+                      >
+                        {isSwapping ? 'Swapping...' : 'Swap'}
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </div>
@@ -1361,12 +1613,6 @@ export default function TeamDetails() {
 
       {isTeamOwner() && (
         <div className="delete-team-container">
-          <button 
-            onClick={() => setIsDeleteSectionOpen(!isDeleteSectionOpen)} 
-            className="delete-toggle-button"
-          >
-            {isDeleteSectionOpen ? 'Hide Delete Options ▲' : 'Delete Team ▼'}
-          </button>
           
           {isDeleteSectionOpen && (
             <div className="delete-team-section">
@@ -1401,7 +1647,7 @@ export default function TeamDetails() {
         <div className="modal-overlay">
           <div className="champion-selection-modal">
             <div className="modal-header">
-              <h3>Select a Champion for {selectedRole}</h3>
+              <h3>Select {championSelectionType === 'preferred' ? 'Preferred' : 'Backup'} Champion for {selectedRole}</h3>
               <button 
                 className="close-modal-button"
                 onClick={() => {
@@ -1456,10 +1702,89 @@ export default function TeamDetails() {
                   Edit your champion pool
                 </button>
               </div>
+              
+              <div className="selection-type-toggle">
+                <button 
+                  className={`toggle-button ${championSelectionType === 'preferred' ? 'active' : ''}`}
+                  onClick={() => setChampionSelectionType('preferred')}
+                >
+                  Preferred
+                </button>
+                <button 
+                  className={`toggle-button ${championSelectionType === 'backup' ? 'active' : ''}`}
+                  onClick={() => setChampionSelectionType('backup')}
+                >
+                  Backup
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      <div className="team-actions">
+        {!user ? (
+          <div className="login-prompt">
+            <p>Please log in to interact with this team.</p>
+            <button 
+              onClick={() => navigate('/teams/login')}
+              className="login-button"
+            >
+              Login / Register
+            </button>
+          </div>
+        ) : isTeamOwner() ? (
+          <div className="owner-actions">
+            <button 
+              onClick={() => setIsEditingTeamName(true)} 
+              className="edit-button"
+            >
+              Edit Team Name
+            </button>
+            <button 
+              onClick={() => setIsEditingDescription(true)} 
+              className="edit-button"
+            >
+              Edit Description
+            </button>
+            <button 
+              onClick={() => setIsEditingDiscord(true)} 
+              className="edit-button"
+            >
+              Edit Discord Link
+            </button>
+            <button
+              onClick={() => setIsEditingPassword(true)}
+              className="edit-button"
+            >
+              Manage Password
+            </button>
+            <button 
+              onClick={() => setIsDeleteSectionOpen(true)} 
+              className="delete-button"
+            >
+              Delete Team
+            </button>
+          </div>
+        ) : getUserRole() ? (
+          <div className="member-actions">
+            <button 
+              onClick={handleLeaveTakeTool} 
+              className="leave-role-button"
+            >
+              Leave Current Role
+            </button>
+          </div>
+        ) : getOpenRolesCount() > 0 ? (
+          <div className="open-roles-info">
+            <p>This team has open roles! Click on a role to join.</p>
+          </div>
+        ) : (
+          <div className="full-team-info">
+            <p>This team is currently full. Check back later for openings!</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

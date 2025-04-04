@@ -261,6 +261,16 @@ $green-color-dark: #388E3C;
             background-color: rgba($lol-gold, 0.15);
             font-weight: 600;
           }
+          
+          &.unselect-button {
+            background-color: rgba($lol-error-10, 0.1);
+            border: 2px solid transparent;
+            color: $lol-light;
+            
+            &:hover {
+              background-color: rgba($lol-error-10, 0.2);
+            }
+          }
         }
       }
     }
@@ -345,6 +355,20 @@ $green-color-dark: #388E3C;
       @media (max-width: $breakpoint-md) {
         padding: $spacing-md;
         font-size: $font-size-md;
+      }
+    }
+
+    // Desktop only class
+    .desktop-only {
+      @media (max-width: $breakpoint-md) {
+        display: none !important;
+      }
+    }
+
+    // Mobile only class
+    .mobile-only {
+      @media (min-width: ($breakpoint-md + 1px)) {
+        display: none !important;
       }
     }
 

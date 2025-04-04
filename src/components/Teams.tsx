@@ -440,6 +440,18 @@ export default function Teams() {
                 {role}
               </motion.button>
             ))}
+            {roleFilter.length > 0 && (
+              <motion.button
+                onClick={() => setRoleFilter([])}
+                className="role-filter-button unselect-button"
+                variants={roleButtonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <span className="role-icon">❌</span> 
+                Unselect All
+              </motion.button>
+            )}
           </motion.div>
         </div>
         
@@ -471,7 +483,7 @@ export default function Teams() {
             <>
               {/* Desktop Table View */}
               <motion.table 
-                className="teams-table"
+                className="teams-table desktop-only"
                 key="teams-table"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -526,7 +538,7 @@ export default function Teams() {
               </motion.table>
 
               {/* Mobile Card View */}
-              <div className="teams-mobile-cards">
+              <div className="teams-mobile-cards mobile-only">
                 <AnimatePresence>
                   {filteredTeams.map((team) => (
                     <motion.div 

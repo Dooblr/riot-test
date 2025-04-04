@@ -265,7 +265,7 @@
             
             .remove-champion {
               background: none;
-              border: none;
+              border: 1px solid red;
               color: $error-color;
               font-size: 1.2rem;
               line-height: 1;
