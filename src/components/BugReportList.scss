@@ -1,0 +1,249 @@
+@use '../styles/styleVariables' as *;
+
+.bug-report-list-container {
+  max-width: $container-xl;
+  margin: 0 auto;
+  padding: 20px;
+  color: $lol-light;
+  
+  h1 {
+    color: $lol-gold;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+}
+
+.bug-reports-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  background-color: rgba($lol-blue, 0.7);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bug-list {
+  overflow-y: auto;
+  max-height: 600px;
+  border-right: 1px solid rgba($lol-gold, 0.3);
+  padding-right: 16px;
+  
+  @media (max-width: 768px) {
+    max-height: 300px;
+    border-right: none;
+    border-bottom: 1px solid rgba($lol-gold, 0.3);
+    padding-right: 0;
+    padding-bottom: 16px;
+  }
+  
+  .no-bugs {
+    color: rgba($lol-light, 0.6);
+    text-align: center;
+    padding: 24px 0;
+  }
+}
+
+.bug-item {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background-color: rgba($lol-dark, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  
+  &:hover {
+    background-color: rgba($lol-dark, 0.8);
+  }
+  
+  &.selected {
+    background-color: rgba($lol-gold, 0.1);
+    border-left-color: $lol-gold;
+  }
+  
+  &.status-new {
+    border-left-color: #ff9800;
+    
+    &.selected {
+      background-color: rgba(#ff9800, 0.1);
+    }
+  }
+  
+  &.status-in-progress {
+    border-left-color: #2196f3;
+    
+    &.selected {
+      background-color: rgba(#2196f3, 0.1);
+    }
+  }
+  
+  &.status-resolved {
+    border-left-color: #4caf50;
+    
+    &.selected {
+      background-color: rgba(#4caf50, 0.1);
+    }
+  }
+  
+  &.status-wont-fix {
+    border-left-color: #9e9e9e;
+    
+    &.selected {
+      background-color: rgba(#9e9e9e, 0.1);
+    }
+  }
+  
+  .bug-title {
+    font-weight: 500;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .bug-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: rgba($lol-light, 0.7);
+    
+    .bug-status {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      
+      &.status-new {
+        background-color: rgba(#ff9800, 0.2);
+        color: #ff9800;
+      }
+      
+      &.status-in-progress {
+        background-color: rgba(#2196f3, 0.2);
+        color: #2196f3;
+      }
+      
+      &.status-resolved {
+        background-color: rgba(#4caf50, 0.2);
+        color: #4caf50;
+      }
+      
+      &.status-wont-fix {
+        background-color: rgba(#9e9e9e, 0.2);
+        color: #9e9e9e;
+      }
+    }
+  }
+}
+
+.bug-details {
+  .bug-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba($lol-gold, 0.3);
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    h2 {
+      color: $lol-gold;
+      margin: 0;
+    }
+    
+    .bug-status-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      label {
+        color: rgba($lol-light, 0.8);
+      }
+      
+      select {
+        padding: 6px 10px;
+        background-color: rgba($lol-dark, 0.7);
+        color: $lol-light;
+        border: 1px solid rgba($lol-gold, 0.5);
+        border-radius: 4px;
+        
+        option {
+          background-color: $lol-dark;
+        }
+      }
+    }
+  }
+  
+  .bug-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    
+    .info-group {
+      label {
+        display: block;
+        font-size: 0.8rem;
+        color: rgba($lol-light, 0.7);
+        margin-bottom: 4px;
+      }
+      
+      div {
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  .bug-content {
+    .content-section {
+      margin-bottom: 24px;
+      
+      h3 {
+        color: $lol-gold;
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+      }
+      
+      p {
+        line-height: 1.5;
+        white-space: pre-line;
+      }
+      
+      .steps-content {
+        background-color: rgba($lol-dark, 0.5);
+        padding: 12px;
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+.access-denied {
+  text-align: center;
+  padding: 40px;
+  
+  h2 {
+    color: $lol-gold;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: rgba($lol-light, 0.8);
+  }
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 40px;
+  color: rgba($lol-light, 0.8);
+} 

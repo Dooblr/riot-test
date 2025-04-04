@@ -13,12 +13,16 @@ import TeamsLogin from './components/TeamsLogin'
 import Profile from './components/Profile'
 import CreateTeam from './components/CreateTeam'
 import SummonerVerification from './components/SummonerVerification'
+import BugReportModal from './components/BugReportModal'
+import BugReportList from './components/BugReportList'
 import './App.scss'
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isBugReportModalOpen, setIsBugReportModalOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // Function to fetch user profile - can be called from components to refresh
   const fetchUserProfile = async (userId: string) => {
@@ -29,65 +33,74 @@ function App() {
         const profileData = userDoc.data()
         console.log('User profile found:', profileData)
         setUserProfile(profileData)
+        
+        // Check if user is an admin
+        setIsAdmin(profileData.isAdmin === true)
+        
         return profileData
       } else {
         console.log('No user profile found')
         setUserProfile(null)
+        setIsAdmin(false)
         return null
       }
     } catch (err) {
       console.error('Error fetching user profile:', err)
       setUserProfile(null)
+      setIsAdmin(false)
       return null
     }
   }
 
   useEffect(() => {
-    console.log('Setting up auth state listener')
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('Auth state changed:', user?.uid)
-      setUser(user)
-      
-      if (user) {
-        // Check if user has a profile with summoner name
-        await fetchUserProfile(user.uid)
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      setUser(authUser)
+      if (authUser) {
+        await fetchUserProfile(authUser.uid)
       } else {
         setUserProfile(null)
+        setIsAdmin(false)
       }
-      
       setLoading(false)
     })
 
     return () => unsubscribe()
   }, [])
 
-  // Debug output
-  useEffect(() => {
-    console.log('Current auth state:', { 
-      user: user?.uid, 
-      hasProfile: !!userProfile,
-      summonerName: userProfile?.summonerName 
-    })
-  }, [user, userProfile])
-
-  if (loading) {
-    return <div className="loading">Loading...</div>
-  }
-
+  // Higher-order component for protected routes
   const RequireAuth = ({ children }: { children: JSX.Element }) => {
+    if (loading) {
+      return <div className="loading-auth">Loading...</div>
+    }
+
+    // If user is not logged in, redirect to login
     if (!user) {
-      console.log('RequireAuth: No user, redirecting to login')
       return <Navigate to="/teams/login" />
     }
-    
-    // Check if user has a summoner name
-    if (!userProfile?.summonerName) {
-      console.log('RequireAuth: No summonerName, redirecting to verification')
-      return <Navigate to="/summoner-verification" />
-    }
-    
-    console.log('RequireAuth: User authenticated with summoner name')
+
     return children
+  }
+  
+  // Higher-order component for admin-only routes
+  const RequireAdmin = ({ children }: { children: JSX.Element }) => {
+    if (loading) {
+      return <div className="loading-auth">Loading...</div>
+    }
+
+    // If user is not logged in or not an admin, redirect
+    if (!user || !isAdmin) {
+      return <Navigate to="/teams" />
+    }
+
+    return children
+  }
+
+  const openBugReportModal = () => {
+    setIsBugReportModalOpen(true)
+  }
+
+  const closeBugReportModal = () => {
+    setIsBugReportModalOpen(false)
   }
 
   return (
@@ -138,6 +151,14 @@ function App() {
                 </RequireAuth>
               }
             />
+            <Route
+              path="/admin/bugs"
+              element={
+                <RequireAdmin>
+                  <BugReportList />
+                </RequireAdmin>
+              }
+            />
           </Routes>
         </main>
         <footer className="app-footer">
@@ -145,7 +166,21 @@ function App() {
             This app is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially 
             involved in producing or managing League of Legends.
           </p>
+          <button onClick={openBugReportModal} className="bug-report-button">
+            Report a Bug
+          </button>
+          {isAdmin && (
+            <a href="/admin/bugs" className="admin-link">
+              Admin: View Bug Reports
+            </a>
+          )}
         </footer>
+        
+        {/* Bug Report Modal */}
+        <BugReportModal 
+          isOpen={isBugReportModalOpen} 
+          onClose={closeBugReportModal} 
+        />
       </div>
     </Router>
   )

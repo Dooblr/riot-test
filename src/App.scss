@@ -67,6 +67,10 @@ main {
   font-size: 0.8rem;
   background-color: rgba(0, 0, 0, 0.4);
   margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   
   a {
     color: $lol-gold;
@@ -76,10 +80,66 @@ main {
       text-decoration: underline;
     }
   }
+  
+  p {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .bug-report-button {
+    background-color: transparent;
+    border: 1px solid rgba($lol-gold, 0.5);
+    color: rgba($lol-light, 0.8);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba($lol-gold, 0.1);
+      border-color: $lol-gold;
+      color: $lol-gold;
+    }
+  }
+  
+  .admin-link {
+    background-color: rgba($lol-gold, 0.1);
+    border: 1px solid $lol-gold;
+    color: $lol-gold;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-block;
+    margin-top: 4px;
+    
+    &:hover {
+      background-color: rgba($lol-gold, 0.2);
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+    
+    &::before {
+      content: '🔒 ';
+      display: inline-block;
+      margin-right: 4px;
+    }
+  }
 }
 
 .page-container {
   padding: 20px 0;
+}
+
+.loading-auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: $lol-light;
+  font-size: 1.2rem;
 }
 
 /* Media queries for responsive design */

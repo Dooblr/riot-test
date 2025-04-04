@@ -1,0 +1,190 @@
+@use '../styles/styleVariables' as *;
+
+.bug-report-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(2px);
+}
+
+.bug-report-modal {
+  background-color: $lol-blue;
+  border: 2px solid $lol-gold;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  color: $lol-light;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 16px;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba($lol-gold, 0.3);
+  padding-bottom: 12px;
+  
+  h2 {
+    margin: 0;
+    color: $lol-gold;
+    font-size: 1.5rem;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    color: $lol-light;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s ease;
+    
+    &:hover {
+      color: $lol-gold;
+    }
+  }
+}
+
+.bug-report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    label {
+      font-weight: 500;
+      
+      .required {
+        color: #ff6b6b;
+      }
+    }
+    
+    input, textarea {
+      padding: 10px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba($lol-gold, 0.5);
+      background-color: rgba($lol-dark, 0.7);
+      color: $lol-light;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+      
+      &:focus {
+        outline: none;
+        border-color: $lol-gold;
+        box-shadow: 0 0 0 2px rgba($lol-gold, 0.2);
+      }
+      
+      &::placeholder {
+        color: rgba($lol-light, 0.5);
+      }
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+  
+  .error-message {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    padding: 8px;
+    background-color: rgba(255, 107, 107, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #ff6b6b;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+    
+    button {
+      padding: 10px 16px;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &.cancel-button {
+        background-color: transparent;
+        border: 1px solid rgba($lol-light, 0.3);
+        color: $lol-light;
+        
+        &:hover {
+          background-color: rgba($lol-light, 0.1);
+        }
+      }
+      
+      &.submit-button {
+        background-color: $lol-gold;
+        border: 1px solid $lol-gold;
+        color: $lol-blue;
+        
+        &:hover:not(:disabled) {
+          background-color: darken($lol-gold, 10%);
+          transform: translateY(-1px);
+        }
+        
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+.success-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  
+  .checkmark {
+    font-size: 3rem;
+    color: #4caf50;
+    margin-bottom: 12px;
+  }
+  
+  p {
+    margin: 4px 0;
+    
+    &:first-of-type {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: $lol-gold;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+} 
