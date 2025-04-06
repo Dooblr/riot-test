@@ -2,11 +2,13 @@ import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { useApiStatus } from "../services/ApiStatusContext";
 import "./Navigation.scss";
 
 function Navigation() {
   const [userInitial, setUserInitial] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const { isRotationApiAvailable } = useApiStatus();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -59,14 +61,16 @@ function Navigation() {
               Teams
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/rotation"
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              Free Champions
-            </NavLink>
-          </li>
+          {isRotationApiAvailable && (
+            <li>
+              <NavLink
+                to="/rotation"
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                Free Champions
+              </NavLink>
+            </li>
+          )}
           {/* <li>
             <NavLink
               to="/server-status"

@@ -336,12 +336,12 @@
       }
 
       .save-button {
-        background-color: $discord-blue;
+        background-color: $indigo-blue;
         color: white;
         border: none;
 
         &:hover {
-          background-color: color.scale($discord-blue, $lightness: -10%);
+          background-color: color.scale($indigo-blue, $lightness: -10%);
         }
 
         &:disabled {

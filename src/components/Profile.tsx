@@ -186,9 +186,19 @@ const Profile: React.FC = () => {
       setSuccess('Profile updated successfully');
       toast.success('Profile updated successfully!');
       
-      // Navigate to teams page after successful update
+      // Check if we have a team to redirect back to
+      const redirectTeamId = localStorage.getItem('redirectTeamId');
+      
+      // Navigate based on whether we have a team to return to
       setTimeout(() => {
-        navigate('/teams');
+        if (redirectTeamId) {
+          // Clear the stored teamId before navigating
+          localStorage.removeItem('redirectTeamId');
+          navigate(`/teams/${redirectTeamId}`);
+        } else {
+          // Default navigation to teams page
+          navigate('/teams');
+        }
       }, 1500); // Give time for the toast to be visible
     } catch (err) {
       console.error('Error updating profile:', err);

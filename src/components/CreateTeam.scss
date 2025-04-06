@@ -1,5 +1,5 @@
-@use '../styles/styleVariables' as *;
-@use "sass:color";
+@use '../styles/styleVariables.scss' as *;
+@use 'sass:color';
 
 .create-team {
   display: flex;
@@ -65,8 +65,8 @@
 
       &[type="url"] {
         &:focus {
-          border-color: $discord-blue;
-          box-shadow: 0 0 0 2px $discord-blue-20;
+          border-color: $indigo-blue;
+          box-shadow: 0 0 0 2px $indigo-blue-20;
         }
       }
     }

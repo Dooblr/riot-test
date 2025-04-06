@@ -1,5 +1,5 @@
-const API_KEY = 'RGAPI-a481a9af-9630-45d9-b02f-ae2a328bd9a7';
-const REGION = 'na1';
+export const API_KEY = 'RGAPI-a481a9af-9630-45d9-b02f-ae2a328bd9a7'; // RIOT APY KEY DO NOT REMOVE THIS LINE
+export const REGION = 'na1';
 
 interface ChampionInfo {
   freeChampionIds: number[];

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
-  OAuthProvider,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  getAuth,
+  getRedirectResult
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
@@ -46,6 +47,26 @@ export default function TeamsLogin() {
     checkAuthState();
   }, [navigate]);
 
+  // Check for redirect result on component mount (for OAuth flows)
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // A sign-in with redirect was just completed
+          const user = result.user;
+          console.log('User signed in after redirect:', user.uid);
+          await checkUserProfileAndRedirect(user.uid);
+        }
+      } catch (err) {
+        console.error('Error handling redirect result:', err);
+        setError('Authentication after redirect failed. Please try again.');
+      }
+    };
+
+    handleRedirectResult();
+  }, []);
+
   const checkUserProfileAndRedirect = async (userId: string) => {
     // Check if user already has a profile with a summoner name
     const userDoc = await getDoc(doc(db, 'users', userId));
@@ -71,29 +92,29 @@ export default function TeamsLogin() {
       const user = result.user;
       console.log('User signed in:', user.uid);
       
-      await checkUserProfileAndRedirect(user.uid);
-    } catch (err) {
-      console.error('Error signing in with Google:', err);
-      setError('Failed to sign in with Google');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const provider = new OAuthProvider('apple.com');
-      console.log('Starting Apple sign in...');
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log('User signed in:', user.uid);
+      // Ensure user document exists
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          userId: user.uid,
+          email: user.email,
+          createdAt: new Date(),
+          provider: 'google.com'
+        });
+      }
       
       await checkUserProfileAndRedirect(user.uid);
-    } catch (err) {
-      console.error('Error signing in with Apple:', err);
-      setError('Failed to sign in with Apple');
+    } catch (err: any) {
+      console.error('Error signing in with Google:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in was cancelled. Please try again.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked. Please allow pop-ups for this site.');
+      } else {
+        setError(`Failed to sign in with Google: ${err.message || 'Unknown error'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -121,7 +142,8 @@ export default function TeamsLogin() {
         await setDoc(doc(db, 'users', user.uid), {
           email: user.email,
           userId: user.uid,
-          createdAt: new Date()
+          createdAt: new Date(),
+          provider: 'password'
         });
       } else {
         // Login existing user
@@ -136,6 +158,7 @@ export default function TeamsLogin() {
       // Provide user-friendly error messages
       if (err.code === 'auth/email-already-in-use') {
         setError('This email is already registered. Please log in instead.');
+        setAuthMethod('login');
       } else if (err.code === 'auth/invalid-email') {
         setError('Please enter a valid email address.');
       } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
@@ -143,7 +166,7 @@ export default function TeamsLogin() {
       } else if (err.code === 'auth/weak-password') {
         setError('Password should be at least 6 characters.');
       } else {
-        setError(`Authentication failed: ${err.message}`);
+        setError(`Authentication failed: ${err.message || 'Unknown error'}`);
       }
     } finally {
       setLoading(false);
@@ -219,17 +242,16 @@ export default function TeamsLogin() {
             <span>{authMethod === 'login' ? 'Sign in with Google' : 'Continue with Google'}</span>
           </button>
           
-          <button 
-            onClick={handleAppleSignIn} 
-            className="apple-sign-in"
-            disabled={loading}
-          >
-            <span className="icon">A</span>
-            <span>{authMethod === 'login' ? 'Sign in with Apple' : 'Continue with Apple'}</span>
-          </button>
+          <div className="auth-note">
+            <p>We support email and Google authentication methods for secure access.</p>
+          </div>
         </div>
         
-        {error && <div className="error">{error}</div>}
+        {error && (
+          <div className="error">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 @use './variables.scss';
+@use './styles/styleVariables.scss' as *;
 
 /* League of Legends theme colors */
 $lol-gold: #d0a85c;
@@ -86,20 +87,41 @@ main {
     margin: 0 auto;
   }
   
-  .bug-report-button {
-    background-color: transparent;
-    border: 1px solid rgba($lol-gold, 0.5);
-    color: rgba($lol-light, 0.8);
-    padding: 6px 12px;
-    font-size: 0.8rem;
+  .footer-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .bug-report-button, .view-intro-button {
+    background: transparent;
+    border: 1px solid $lol-gold;
+    color: $lol-gold;
+    padding: 0.5rem 1rem;
     border-radius: 4px;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
+    font-weight: 500;
     
     &:hover {
-      background-color: rgba($lol-gold, 0.1);
-      border-color: $lol-gold;
-      color: $lol-gold;
+      background: rgba($lol-gold, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  .view-intro-button {
+    border-color: $indigo-blue;
+    color: $indigo-blue;
+    
+    &:hover {
+      background: rgba($indigo-blue, 0.1);
     }
   }
   

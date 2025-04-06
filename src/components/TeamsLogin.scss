@@ -215,6 +215,21 @@
       }
     }
 
+    .auth-note {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba($lol-gold, 0.1);
+      border-radius: 4px;
+      border: 1px solid rgba($lol-gold, 0.3);
+      
+      p {
+        margin: 0;
+        color: $text-color;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+    }
+
     .error {
       color: $error-color;
       margin-top: 1rem;
@@ -223,6 +238,16 @@
       border-radius: 4px;
       border: 1px solid $error-color;
       font-size: 0.9rem;
+      text-align: left;
+      line-height: 1.4;
+      
+      .error-suggestion {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba($error-color, 0.3);
+        font-weight: 500;
+        color: $text-color;
+      }
     }
   }
 } 

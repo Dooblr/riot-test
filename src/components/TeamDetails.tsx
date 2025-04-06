@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, addDoc, query, orderBy, onSnapshot, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import './TeamDetails.scss';
+import { toast } from 'react-toastify';
 
 interface Team {
   id: string;
@@ -603,9 +604,9 @@ export default function TeamDetails() {
       updatedRoles[roleIndex] = {
         ...updatedRoles[roleIndex],
         filled: false,
-        userId: undefined, // Using undefined instead of null to fix type issues
-        preferredChampion: undefined, // Also clear champion selections
-        backupChampion: undefined
+        userId: null,
+        preferredChampion: null,
+        backupChampion: null
       };
 
       // Find the member to remove
@@ -621,27 +622,17 @@ export default function TeamDetails() {
       // Then remove the member if found - handle as a separate operation
       if (memberToRemove) {
         try {
-          // Create a proper copy of the member object to avoid timestamp conversion issues
-          const memberObj = {
-            userId: memberToRemove.userId,
-            role: memberToRemove.role,
-            joinedAt: memberToRemove.joinedAt
-          };
+          // Direct approach - update the members array by filtering
+          const updatedMembers = team.members.filter(m => 
+            !(m.userId === userToRemove && m.role === roleName)
+          );
           
-          await updateDoc(teamRef, {
-            members: arrayRemove(memberObj)
-          });
+          // Update with the filtered array instead of using arrayRemove
+          await updateDoc(teamRef, { members: updatedMembers });
+          
         } catch (memberErr) {
-          console.error('Error removing member:', memberErr, 'Member object:', memberToRemove);
-          // If removing the member fails, try a different approach - update the members array directly
-          try {
-            const updatedMembers = team.members.filter(m => 
-              !(m.userId === userToRemove && m.role === roleName)
-            );
-            await updateDoc(teamRef, { members: updatedMembers });
-          } catch (fallbackErr) {
-            console.error('Fallback member removal also failed:', fallbackErr);
-          }
+          console.error('Error removing member:', memberErr);
+          throw memberErr; // Rethrow to trigger the outer catch block
         }
       }
 
@@ -660,12 +651,15 @@ export default function TeamDetails() {
         };
       });
 
-      // Success - clear any previous errors
+      // Success - clear any previous errors and show success message
       setError(null);
+      // Add temporary success message
+      toast.success("User removed successfully");
 
     } catch (err) {
       console.error('Error removing user from role:', err);
       setError('Failed to remove user from team');
+      toast.error("Failed to remove user from team");
     }
   };
 
@@ -1710,7 +1704,11 @@ export default function TeamDetails() {
                   <p>You haven't added any champions to your pool yet.</p>
                   <button 
                     className="go-to-profile-button"
-                    onClick={() => navigate('/teams/profile')}
+                    onClick={() => {
+                      // Save the current teamId to localStorage before navigating
+                      localStorage.setItem('redirectTeamId', teamId || '');
+                      navigate('/teams/profile');
+                    }}
                   >
                     Go to Profile to Add Champions
                   </button>
@@ -1727,7 +1725,11 @@ export default function TeamDetails() {
                 <span>Want to add more champions to your pool?</span>
                 <button 
                   className="go-to-profile-link"
-                  onClick={() => navigate('/teams/profile')}
+                  onClick={() => {
+                    // Save the current teamId to localStorage before navigating
+                    localStorage.setItem('redirectTeamId', teamId || '');
+                    navigate('/teams/profile');
+                  }}
                 >
                   Edit your champion pool
                 </button>

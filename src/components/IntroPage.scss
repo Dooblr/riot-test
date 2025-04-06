@@ -1,0 +1,172 @@
+@use '../styles/styleVariables.scss' as *;
+@use 'sass:color';
+
+.intro-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: $lol-dark;
+  padding: 2rem;
+  background-image: linear-gradient(to bottom right, rgba($lol-blue, 0.9), rgba($lol-dark, 0.95)), 
+                    url('/bg-summoners-rift.jpg');
+  background-size: cover;
+  background-position: center;
+  
+  .intro-content {
+    background: $card-bg;
+    border-radius: 12px;
+    padding: 3rem;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 2px solid $lol-gold;
+    text-align: center;
+    animation: fadeIn 0.6s ease-out;
+    
+    @media (max-width: 768px) {
+      padding: 2rem;
+    }
+    
+    h1 {
+      color: $lol-gold;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+    }
+    
+    .intro-description {
+      margin-bottom: 3rem;
+      
+      p {
+        color: $text-color;
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+    
+    .intro-features {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      
+      .feature {
+        flex: 1;
+        padding: 1.5rem;
+        background: rgba($lol-dark, 0.3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba($lol-gold, 0.2);
+        
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+          border-color: $lol-gold;
+        }
+        
+        .feature-icon {
+          font-size: 2.5rem;
+          margin-bottom: 1rem;
+          display: block;
+        }
+        
+        h3 {
+          color: $lol-gold;
+          font-size: 1.4rem;
+          margin-bottom: 0.8rem;
+        }
+        
+        p {
+          color: $text-color;
+          font-size: 1rem;
+          line-height: 1.5;
+        }
+      }
+    }
+    
+    .intro-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      
+      .continue-button {
+        background: $lol-gold;
+        color: $lol-dark;
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 60%;
+        max-width: 300px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        
+        &:hover {
+          background-color: color.scale($lol-gold, $lightness: -10%);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+      
+      .skip-button {
+        background: transparent;
+        color: $text-color-muted;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          color: $lol-gold;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+.intro-loading {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: $lol-dark;
+  color: $lol-gold;
+  font-size: 1.5rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
